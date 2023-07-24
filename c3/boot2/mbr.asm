@@ -50,7 +50,8 @@ SECTION MBR vstart=0x7c00
 
   mov eax, LOADER_START_SECTOR  ;起始扇区lba的地址
   mov bx, LOADER_BASE_ADDR      ;写入的地址
-  mov cx,1                      ;待写入的扇区数
+  mov cx, 4                     ;待写入的扇区数
+                                ;加载loader.bin的扇区数变为4
   call rd_disk_m_16             ;读取程序的起始部分
 
   jmp LOADER_BASE_ADDR
