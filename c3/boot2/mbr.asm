@@ -54,7 +54,7 @@ SECTION MBR vstart=0x7c00
                                 ;加载loader.bin的扇区数变为4
   call rd_disk_m_16             ;读取程序的起始部分
 
-  jmp LOADER_BASE_ADDR
+  jmp LOADER_BASE_ADDR + 0x300
 
 ;功能：读取硬盘的n个扇区
 rd_disk_m_16:
