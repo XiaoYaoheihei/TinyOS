@@ -194,11 +194,106 @@ p_mode_start:
   mov ax, SELECTOR_VIDEO
   mov gs, ax
 
-  mov byte [gs:160], 'P';利用选择子进行寻址的过程需要清楚！！！
-  ;gs中选择子的低两位是RPL，第2位是TL=0，表示是在GDT中索引段描述符
-  ;用gs的高18位在GDT中进行索引，找到段描述符之后，计算出相应的段基址，与偏移地址相加
-  ;用所得的地址作为访存的地址
-  jmp $
+	call setup_page		;创建页目录以及页表并且初始化页内存位图
+	
+	sgdt [gdt_ptr]		;将GDTR中存储的地址以及偏移量写入内存gdt_ptr中
+										;存储到原来gdt的位置
+	;将gdt描述符中视频段描述符中的段基址+0xc0000000
+	mov ebx, [gdt_ptr + 2]	;GDT的起始位置放入到ebx中
+	or dword [ebx+0x18+4], 0xc0000000	;是第三个段描述符，每个描述符8字节，是0x18
+																		;段描述符的高 4 字节的最高位是段基址的第 31～24 位
+	;将GDT基址也改到内核中去
+	add dword [gdt_ptr+2], 0xc0000000	;将gdt的基址加上0xc0000000,使得成为内核所在的高地址
+	add esp, 0xc0000000								;将栈指针同样映射到内核地址
+
+	mov eax, PAGE_DIR_TABLE_POS				;把页目录地址赋给cr3
+	mov cr3, eax
+
+	mov eax, cr0											;打开cr0的PG位
+	or eax, 0x80000000
+	mov cr0, eax
+
+	lgdt [gdt_ptr]										;开启分页之后，重新加载gdt的地址
+
+	mov byte [gs:160], 'V'						;视频段基址已经被更新
+																		;此时我们访问的所有地址都是虚拟地址
+																		;首先便是gdt的虚拟地址，其此就是视频段的虚拟地址
+																		;cpu会自动将虚拟地址转化成真实的物理地址进行访问
+	jmp $
+
+;------创建页目录以及页表
+setup_page:
+	mov ecx, 4096
+	mov esi, 0
+;把页目录项占用的空间逐个字节清0
+;循环次数4096
+.clear_page_dir:
+	mov byte [PAGE_DIR_TABLE_POS + esi], 0
+	inc esi
+	loop .clear_page_dir
+
+;开始创建页目录项PDE(Page Directory Entry)
+.create_pde:
+	mov eax, PAGE_DIR_TABLE_POS
+	;此是eax指向的是第一个页表的位置，eax越过页目录所有的地址
+	add eax, 0x1000
+	;此处为 ebx赋值，是为.create_pte 做准备，ebx为基址
+	mov ebx, eax
+
+;每一个页表表示4M的内存
+;这样 0xc03fffff 以下的地址和 0x003fffff 以下的地址都指向相同的页表
+;这是为将地址映射为内核地址做准备
+	;表示用户属性，所有特权级别都可以访问
+	or eax, PG_US_U | PG_RW_W | PG_P	;第一个页表的位置是0x101000属性是7
+	;第一个页表的地址放在页目录项0中
+	;页目录项中高20存储的物理地址，后12位存储的都是属性
+	mov [PAGE_DIR_TABLE_POS + 0x0], eax
+	;一个页表项占用4个字节
+	;0xc00表示第768个页表占用的目录项，0xc00以上的目录项用于内核空间
+	;也就是说页表的0xc0000000--0xffffffff共计1G属于内核
+	;0x0--0xbfffffff共计3G属于用户进程
+	;页目录项0xc00也存放第一个页表的地址
+	mov [PAGE_DIR_TABLE_POS + 0xc00], eax
+	
+	sub eax, 0x1000												;eax指向了页目录地址
+	mov [PAGE_DIR_TABLE_POS + 4092], eax	;页目录项中的最后一个目录项指向的是页目录表自己地址
+
+;开始创建页表项PTE
+;此页表是第0个页表项对应的页表，他用来分配物理地址范围0--0x3fffff
+;一个页表表示的内存容量是4MB，但我们目前只用到了第1个1MB空间
+;所以我们只为这1MB空间对应的页表项分配物理页
+	mov ecx, 256	;每个物理页是4K，所以1M空间只需要256个页表项
+	mov esi, 0
+	mov edx, PG_US_U | PG_RW_W | PG_P		;属性为7
+.creade_pte:						;创建每一个Page Table Entry
+												;之前的ebx已经赋值为0x101000,是第一个页表的位置
+	mov [ebx+esi*4], edx	;edx是物理页的页表项
+	add edx, 4096					;每次都加4K，物理地址是连续分配的
+	inc esi
+	loop .creade_pte
+
+;创建内核其他页表的PDE
+	mov eax, PAGE_DIR_TABLE_POS
+	add eax, 0x2000				;此是eax指向第二个页表的位置
+	or eax, PG_US_U | PG_RW_W | PG_P	;属性是7
+	mov ebx, PAGE_DIR_TABLE_POS
+	mov ecx, 254					;范围为第 769～1022 的所有目录项数量
+	mov esi, 769					;数量是254
+.create_kernel_pde:
+	mov [ebx+esi*4], eax
+	inc esi								;偏移量+1
+	add eax, 0x1000				;页表数+1
+	loop .create_kernel_pde
+	;最后从2--256都是内核对应的页表空间
+	;此时还没有为页表中的具体PTE分配物理页，还不算真正的内存空间
+	ret
+
+
+  ; mov byte [gs:160], 'P';利用选择子进行寻址的过程需要清楚！！！
+  ; ;gs中选择子的低两位是RPL，第3位是TL=0，gs中表示的是在GDT中索引段描述符
+  ; ;用gs的高18位在GDT中进行索引，找到段描述符之后，计算出相应的段基址，与偏移地址相加
+  ; ;用所得的地址作为访存的地址
+  ; jmp $
 
 mov byte [gs:0x00],'2'
 mov byte [gs:0x01],0x99   ;闪烁的蓝色背景，高亮的前景蓝色
