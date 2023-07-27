@@ -162,7 +162,7 @@ mov di, ards_buf					;结构缓冲区地址
 ;                       ; 由于文本模式下的行数是25行，所以此表示最后一行
 ; int 0x10              ; 10h 号中断
 
-;--------------------准备进入保护模式----------------------------
+;-------------准备进入保护模式
 ;打开A20
 in al, 0x92
 or al, 0000_0010b
@@ -194,7 +194,16 @@ p_mode_start:
   mov ax, SELECTOR_VIDEO
   mov gs, ax
 
-	call setup_page		;创建页目录以及页表并且初始化页内存位图
+;----------加载内核
+	mov eax, KERNEL_START_SECTOR	;kernel在的扇区号
+	mov ebx, KERNEL_BIN_BASE_ADDR	;kernel加载到的内存地址
+	;从disk读出之后，写入到ebx指定的地址
+	mov ecx, 200									;读入的扇区数
+	call rd_disk_m_32
+
+
+;----------创建页目录以及页表并且初始化页内存位图
+	call setup_page		
 	
 	sgdt [gdt_ptr]		;将GDTR中存储的地址以及偏移量写入内存gdt_ptr中
 										;存储到原来gdt的位置
@@ -205,6 +214,7 @@ p_mode_start:
 	;将GDT基址也改到内核中去
 	add dword [gdt_ptr+2], 0xc0000000	;将gdt的基址加上0xc0000000,使得成为内核所在的高地址
 	add esp, 0xc0000000								;将栈指针同样映射到内核地址
+																		;此时esp=0xc0000900
 
 	mov eax, PAGE_DIR_TABLE_POS				;把页目录地址赋给cr3
 	mov cr3, eax
@@ -219,9 +229,174 @@ p_mode_start:
 																		;此时我们访问的所有地址都是虚拟地址
 																		;首先便是gdt的虚拟地址，其此就是视频段的虚拟地址
 																		;cpu会自动将虚拟地址转化成真实的物理地址进行访问
-	jmp $
+	mov byte [gs:162], 'I'
+	mov byte [gs:164], 'R'
+	mov byte [gs:166], 'T'
+	mov byte [gs:168], 'U'
+	mov byte [gs:170], 'A'
+	mov byte [gs:172], 'L'
+	;显示已经进入虚拟地址，以后访问的地址都是虚拟地址
 
-;------创建页目录以及页表
+;为了以防万一，还是强制刷新流水线吧
+	jmp SELECTOR_CODE:enter_kernel		;强制刷新流水线，更新gdt
+enter_kernel:
+	mov byte [gs:320], 'k'     				;视频段基址已经被更新
+  mov byte [gs:322], 'e'     
+  mov byte [gs:324], 'r'     
+  mov byte [gs:326], 'n'     
+  mov byte [gs:328], 'e'     
+  mov byte [gs:330], 'l'     
+
+  mov byte [gs:480], 'w'     
+  mov byte [gs:482], 'h'     
+  mov byte [gs:484], 'i'     
+  mov byte [gs:486], 'l'     
+  mov byte [gs:488], 'e'     
+  mov byte [gs:490], '('     
+  mov byte [gs:492], '1'     
+  mov byte [gs:494], ')'     
+  mov byte [gs:496], ';'     
+	call kernel_init
+	mov esp, 0xc009f000								;重新设置内核的栈地址
+	jmp KERNEL_ENTRY_POINT						;使用地址0xc0001500来访问
+
+
+;---------将kernel.bin 中的 segment 拷贝到编译的地址
+kernel_init:
+	xor eax, eax
+	xor ebx, ebx		;ebx记录 程序头表 地址
+	xor ecx, ecx		;cx记录 程序头表 中program header的数量
+	xor edx, edx		;dx记录 program header的大小，即e_phentsize
+									;每个用来描述段信息的数据结构的字节大小
+	mov dx, [KERNEL_BIN_BASE_ADDR+42]		;偏移文件42字节处的属性是 e_phentsize，表示program header大小
+	mov ebx, [KERNEL_BIN_BASE_ADDR+28]	;偏移文件开始部分28字节的地方是 e_phoff
+																			;程序头表在文件中的偏移量，因为程序头表其实就是一个数组
+																			;所以也表示第1个program header在文件中的偏移量
+																			;其实该值是 0x34，不过还是谨慎一点，这里来读取实际值
+	;因为我们需要的是物理地址，但是此时ebx中存储的还是偏移地址
+	;所以加上内核的加载地址，这样得到的才是程序头表的物理地址
+	add ebx, KERNEL_BIN_BASE_ADDR				;此时ebx指向的是第1个program header
+	mov cx, [KERNEL_BIN_BASE_ADDR + 44]	;偏移文件开始部分44字节的地方是e_phnum，表示有几个program header
+	
+.each_segment:
+	cmp byte [ebx + 0], PT_NULL		;若p_type等于PT_NULL说明此program header未使用
+	je .PTNULL
+	
+	;为函数压入参数，参数是从右往左依次压入
+	;函数原型类似于memcpy(dst, src, size)
+	push dword [ebx + 16]					;program header中偏移16字节的地方是 p_filesz
+																;首先压入第3个参数size
+																;表示本段在文件中的大小
+	mov eax, [ebx + 4]						;距程序头偏移量为 4 字节的位置是 p_offset
+																;表示本段在文件中的起始偏移字节
+	add eax, KERNEL_BIN_BASE_ADDR	;加上kernel.bin被加载到的物理地址，eax为该段的物理地址
+	push eax											;压入第2个参数源地址
+	push dword [ebx + 8]					;压入第一个参数目标地址
+																;偏移程序头8字节的位置是p_vaddr是目的地址
+																;表示本段在内存中的起始虚拟地址
+	call mem_cpy		;调用完成段复制
+	add esp, 12			;3个参数总共占用了12字节，栈顶跨过他们，清理栈中压入的三个参数
+	
+.PTNULL:
+	add ebx, edx		;edx为program header大小,即 e_phentsize
+									;在此ebx指向下一个program header
+	loop .each_segment
+	ret
+
+;----------逐个字节进行拷贝
+;输入：栈中的三个参数(dst, src, size)
+;输出：无	
+;使用call指令进行函数调用的时候，CPU会自动在栈中压入返回地址
+mem_cpy:
+	cld 					;将方向标志位置0,在执行后续的字符串指令的时候
+								;esi和edi会自动  加上  搬运数据的大小
+	push ebp			;访问栈中的参数是基于ebp来访问的，通常要将esp的值赋给ebp
+								;由于不知道ebp的值是否重要，所以提前将ebp备份起来
+	mov ebp, esp	;将esp的值赋给ebp
+	push ecx							;rep指令用到了ecx
+												;但是ecx对于外层段的循环由作用，先入栈备份
+	mov edi, [ebp + 8]		;dst,栈中每一个单元占用4个字节
+	mov esi, [ebp + 12]		;src
+	mov ecx, [ebp + 16]		;size
+	rep movsb							;逐个字节拷贝
+
+	;恢复环境
+	pop ecx
+	pop ebp
+	ret
+
+	
+	;jmp $
+
+;-------读取硬盘n个扇区空间
+rd_disk_m_32:
+	;eax=扇区号
+	;ebx=将数据写入的内存地址
+	;ecx=读入的扇区数
+	mov esi,eax ;备份eax和cx
+  mov di,cx
+;读写硬盘
+;第一步，设置要读取的扇区数
+  mov dx,0x1f2
+  mov al,cl
+  out dx,al
+
+	mov eax,esi
+
+;第二步，将LBA地址存入0x1f3 ~ 0x1f6这几个端口中
+;将0--7位写入端口0x1f3
+  mov dx,0x1f3
+  out dx,al
+
+  ;将8--15位写入0x1f4
+  mov cl,8
+  shr eax,cl  ;右移8位
+  mov dx,0x1f4
+  out dx,al
+
+  ;将16--23位写入0x1f5
+  shr eax,cl  ;右移8位
+  mov dx,0x1f5
+  out dx,al
+
+  shr eax,cl  ;再右移8位
+  and al,0x0f ;LBA的24--27位设置
+  or al,0xe0  ;与此同时设置4--7位为1110,表示lba模式
+  mov dx,0x1f6
+  out dx,al
+
+;第三步，向0x1f7端口写入读命令
+  mov dx,0x1f7
+  mov al,0x20
+  out dx,al
+
+;第四步，检测硬盘状态
+;同一个端口地址，写时表示表示写入命令字，读时表示读入硬盘状态
+.not_ready:
+  nop
+  in al,dx
+  and al,0x88   ;第4位为1表示硬盘控制器已经准备好数据传输
+                ;第7位为1表示硬盘忙
+  cmp al,0x08
+  jnz .not_ready  ;如果没有准备好继续等待
+
+;第五步，从0x1f0端口读取数据
+  mov ax,di       ;di是要读取的扇区数
+  mov dx,256      ;一个扇区有512个字节，每次读入一个字
+  mul dx          ;共需要读取di*512/2次,所以di*256
+  mov cx,ax       ;因为结果比较小，不用管在dx寄存器中的高16位
+                  ;直接使用ax表示循环的次数
+  mov dx,0x1f0
+
+.go_on_ready:
+  in ax,dx
+  mov [ebx],ax
+  add ebx,2
+  loop .go_on_ready
+  ret
+
+
+;-------创建页目录以及页表
 setup_page:
 	mov ecx, 4096
 	mov esi, 0

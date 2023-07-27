@@ -56,7 +56,7 @@ SECTION MBR vstart=0x7c00
 
   jmp LOADER_BASE_ADDR + 0x300
 
-;功能：读取硬盘的n个扇区
+;---------------功能：读取硬盘的n个扇区
 rd_disk_m_16:
                                 ;eax=lba扇区号
                                 ;bx=将数据写入的内存地址
