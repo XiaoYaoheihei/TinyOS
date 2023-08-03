@@ -68,59 +68,60 @@ put_char:
   shr bx, 1               ;恢复光标值
   inc bx                  ;下一个光标
   cmp bx, 2000
-  jl .set_cursor          ;光标值<2000，还未写到显存的最后，去设置新的光标值
+  jl .set_cursor          ;光标坐标<2000，还未写到显存的最后，去设置新的光标值
                           ;若超出屏幕字符数大小，换行处理
 
 .is_line_feed:
   ;是换行符的处理
 .is_carriage_return:
   ;是回车符的处理
-  ;把光标移动到行首就行
-  xor dx, dx
-  mov ax, bx
-  mov si, 80
-
-  div si
-
-  sub bx, dx
+  ;把光标移动到本行行首就行
+  xor dx, dx              ;被除数的高16位，清0
+  mov ax, bx              ;被除数的低16位，
+  mov si, 80              ;每一行是80充当除数
+  div si                  ;除以80再-余数就是行首位置
+  sub bx, dx              ;经过div之后dx寄存器中存的是余数
 
 .is_carriage_return_end:
-  add bx, 80
+  add bx, 80              ;直接移动到下一行行首
   cmp bx, 2000
 .is_line_feed_end:
   jl .set_cursor
 
-
+;屏幕行范围是 0～24，滚屏的原理是将屏幕的第 1～24 行搬运到第 0～23 行
+;再将第 24 行用空格填充
 .roll_screen:
-  cld
-  mov ecx, 960
-  
-  mov esi, 0xc00b808a
-  mov edi, 0xc00b8000
+  ;滚屏操作
+  cld                 ;清除方向位，标志位DF=0
+  mov ecx, 960        ;2000-80=1920个字符需要搬运，一共3840个字节
+                      ;一次搬运4字节，一共需要3840/4=960次
+  mov esi, 0xc00b808a ;第一行行首位置
+  mov edi, 0xc00b8000 ;第0行行首位置
   rep movsd
+  ;将最后一行填充为空白
+  mov ebx, 3840       ;字节偏移值是1920✖2=3840
+  mov ecx, 80         ;一行是80个字符，每一清空1个字符，一行需要移动80次
 
-  mov ebx, 3840
-  mov ecx, 80
-
-.cls:
-  mov word [gs:ebx], 0x0720
+  .cls:
+  mov word [gs:ebx], 0x0720 ;黑底白字的空格键
   add ebx, 2
   loop .cls
-  mov bx, 1920
+  mov bx, 1920        ;将光标重置为1920，最后一行的首字符
 
-.set_cursor:
-  mov dx, 0x03d4
-  mov al, 0xe
+.set_cursor:      
+  ;重新设置光标值为bx
+  mov dx, 0x03d4  ;索引寄存器的端口号
+  mov al, 0xe     ;用于提供高8位的寄存器索引
   out dx, al
-  mov dx, 0x03d5
-  mov al, bh
+  mov dx, 0x03d5  ;通过读写端口来获得值
+  mov al, bh      ;把bx的值更新到光标坐标器的高8位
   out dx, al
-
+  ;再设置低8位
   mov dx, 0x03d4
   mov al, 0x0f
   out dx, al
   mov dx, 0x03d5
-  mov al, bl
+  mov al, bl      ;把bx的值更新到光标坐标器的低8位
   out dx, al
 .put_char_done:
   popad
