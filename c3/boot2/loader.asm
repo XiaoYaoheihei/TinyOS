@@ -195,6 +195,8 @@ p_mode_start:
   mov gs, ax
 
 ;----------加载内核
+;----------把内核文件从硬盘上加载到内存中
+	;内存位置是0xcde
 	mov eax, KERNEL_START_SECTOR	;kernel在的扇区号
 	mov ebx, KERNEL_BIN_BASE_ADDR	;kernel加载到的内存地址
 	;从disk读出之后，写入到ebx指定的地址
@@ -223,7 +225,8 @@ p_mode_start:
 	or eax, 0x80000000
 	mov cr0, eax
 
-	lgdt [gdt_ptr]										;开启分页之后，重新加载gdt的地址
+	lgdt [gdt_ptr]										;现在已经正式启动分页机制
+																		;开启分页之后，重新加载gdt的地址
 
 	mov byte [gs:160], 'V'						;视频段基址已经被更新
 																		;此时我们访问的所有地址都是虚拟地址
@@ -246,21 +249,22 @@ enter_kernel:
   mov byte [gs:326], 'n'     
   mov byte [gs:328], 'e'     
   mov byte [gs:330], 'l'     
-
-  mov byte [gs:480], 'w'     
-  mov byte [gs:482], 'h'     
-  mov byte [gs:484], 'i'     
-  mov byte [gs:486], 'l'     
-  mov byte [gs:488], 'e'     
-  mov byte [gs:490], '('     
-  mov byte [gs:492], '1'     
-  mov byte [gs:494], ')'     
-  mov byte [gs:496], ';'     
+	;地址是0xd9c
+  ; mov byte [gs:480], 'w'     
+  ; mov byte [gs:482], 'h'     
+  ; mov byte [gs:484], 'i'     
+  ; mov byte [gs:486], 'l'     
+  ; mov byte [gs:488], 'e'     
+  ; mov byte [gs:490], '('     
+  ; mov byte [gs:492], '1'     
+  ; mov byte [gs:494], ')'     
+  ; mov byte [gs:496], ';'     
 	call kernel_init
 	mov esp, 0xc009f000								;重新设置内核的栈地址
-	jmp KERNEL_ENTRY_POINT						;使用地址0xc0001500来访问
+	jmp KERNEL_ENTRY_POINT						;使用虚拟地址0xc0001500来访问
+																		;虚拟地址对应的真实地址是物理内存地址0x1500
 
-
+;---------初始化内核，进行相应的复制
 ;---------将kernel.bin 中的 segment 拷贝到编译的地址
 kernel_init:
 	xor eax, eax
