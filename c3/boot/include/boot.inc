@@ -47,8 +47,8 @@ DESC_L + DESC_AVL + DESC_LIMIT_VIDEO2 + DESC_P + \
 DESC_DPL_0 + DESC_S_DATA + DESC_TYPE_DATA + 0x0b
 
 ;--------------选择子属性 ---------------
-RPL0 equ 00b
-RPL1 equ 01b
+RPL0 equ 00b  ;特权级为0,最高
+RPL1 equ 01b  ;特权级为1,依次类推
 RPL2 equ 10b
 RPL3 equ 11b
 TI_GDT equ 000b
