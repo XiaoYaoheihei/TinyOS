@@ -2,8 +2,109 @@ TI_GDT  equ 0
 RPL0    equ 0
 SELECTOR_VIDEO equ (0x0003<<3)+TI_GDT+RPL0
 
+section .data
+put_int_buffer dq 0   ;定义了8字节的缓冲区用于转化
+
 [bits 32]
 section .text
+;------------实现put_int的功能
+;将小端字节序的数字变成对应的ASCII之后，倒置
+;输入：栈中参数待打印的数字
+;输出:在屏幕上打印16进制数字，并且不会打印0x前缀
+
+global put_int
+put_int:
+  pushad            ;8个寄存器
+  mov ebp, esp
+  mov eax, [ebp+4*9]  ;8个寄存器和一个返回地址
+  mov edx, eax        ;拿到数字的值
+  mov edi, 7          ;指定在buffer中的初始偏移量
+  mov ecx, 8          ;32位数字中，有8个16进制的数字
+  mov ebx, put_int_buffer ;buffer的起始地址
+  ;将32位数字按照16进制的形式从低位到高位逐个处理
+  ;一共处理8个16进制数字
+  .16based_4bits:
+  ;遍历每一位16进制数字
+    and edx, 0x0000000f ;解析16进制中数字的每一位
+                        ;and操作之后只有低4位有效
+    cmp edx, 9          ;数字0-9和a-f需要分别处理成对应的字符
+    jg .is_A2F         
+    add edx, '0'        ;ASCII大小是8位，add之后edx只有低8位有效
+    jmp .store
+  .is_A2F:
+    sub edx, 10         ;a-f的话-10得到的差+字符A的ASCII,便是a-f
+                        ;的ASCII值
+    add edx, 'A'
+
+  .store:
+    ;每一位数字转化成字符之后，按照类似大端的顺序
+    ;高位字符放在低地址，低位字符放在高地址
+    mov [ebx+edi], dl   ;此时dl中是数字对应的字符ASCII值
+    dec edi
+    shr eax, 4          ;处理下一个16进制，右移的方式
+    mov edx, eax        ;方便下一次处理
+    loop .16based_4bits
+
+  ;现在buffer中都是字符，打印之前，需要把高位连续的字符去掉
+  ;比如把字符000123变成123
+  .ready_to_print:
+    inc edi       ;edi需要+1
+  .skip_prefix_0:
+    cmp edi, 8    ;偏移地址已经到第8个了，说明是第9位，偏移地址最多是7
+                  ;第一次就==8的话说明在buffer存储了0位
+    je .full0     ;buffer中前面的全是0
+  .go_on_skip:
+    mov cl, [put_int_buffer+edi]
+    inc edi       ;指向了下一个偏移地址
+    cmp cl, '0'   ;如果刚好此时只存储了1位，这一位还恰好是0，还得处理
+    je .skip_prefix_0
+    dec edi       ;如果上面判断的字符不是0的话，edi-1恢复到当前字符
+    jmp .put_each_num
+
+  .full0:
+    mov cl, '0'   ;输入的字符全为0,只打印一个0
+  .put_each_num:
+    push ecx
+    call put_char
+    add esp, 4
+    inc edi
+    mov cl, [put_int_buffer+edi]
+    cmp edi, 8
+    jl .put_each_num
+    popad
+    ret
+
+
+;--------实现put_str功能，本质上就是对put_char的调用
+;--------put_str通过put_char来打印以0结尾的字符串
+;输入：栈中参数为打印的字符串
+;输出：无
+global put_str
+put_str:            ;此函数只用到了ebx和ecx两个寄存器
+  push ebx
+  push ecx
+  xor ecx, ecx      ;用ecx存储字符参数，必须清空
+  mov ebx, [esp+12] ;从栈中得到待打印的字符串首地址
+                    ;编译器会给字符串常量分配一块内存存储各个字符的ASCII码
+                    ;并且会为其在结尾后面自动补'\0'
+                    ;另外编译器在将该字符串作为参数时会传入字符串的内存首地址
+.goon:
+  mov cl, [ebx]     ;cl中是字符的ASCII码
+  cmp cl, 0
+  jz .str_over
+  push ecx          ;为put_char传递参数，
+                    ;32位保护模式下的栈压入16位操作数和32位操作数
+  call put_char
+  add esp, 4        ;回收字符所占的空间
+  inc ebx
+  jmp .goon
+
+.str_over:
+  pop ecx
+  pop ebx
+  ret
+
+
 ;----------实现put_char功能
 ;----------把栈中的第一个字符写入光标所在处
 
