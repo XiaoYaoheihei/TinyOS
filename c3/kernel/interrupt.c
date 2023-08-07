@@ -19,6 +19,12 @@ struct gate_desc {
   uint16_t func_offset_high_word;//高32位偏移量16-31
 };
 
+char* intr_name[IDT_DESC_CNT];        //保存异常的名字
+//定义中断处理程序数组
+//kernel.asm中定义的只是intrXXentry只是中断处理程序的入口
+//最终调用idt_table中的处理程序
+intr_handler idt_table[IDT_DESC_CNT]; 
+
 extern intr_handler intr_entry_table[IDT_DESC_CNT]; //kernel.asm中的中断处理函数入口数组
 //静态函数声明
 static void make_idt_desc(struct gate_desc* p_gdesc, uint8_t attr, intr_handler function);
@@ -65,10 +71,53 @@ static void pic_init(void) {
 
 }
 
+//通用的中断处理函数,传入的参数是中断向量号
+static void general_intr_handler(uint8_t vec_nr) {
+  if (vec_nr == 0x27 || vec_nr == 0x2f) {
+    //IRQ7 和 IRQ15 会产生伪中断（spurious interrupt），无需处理
+    //0x2f 是从片 8259A 上的最后一个 IRQ 引脚，保留项
+    return;
+  }
+  put_str("int vector:0x");
+  put_int(vec_nr);
+  put_char('\n');
+}
+
+//一般的中断处理函数注册
+static void exception_init() {
+  for (int i = 0; i < IDT_DESC_CNT; i++) {
+    //后面会由register_handler来注册具体的处理函数
+    //此时的值是默认值
+    idt_table[i] = general_intr_handler;
+    intr_name[i] = "unknown";   //先统一赋值为unknown
+  }
+  intr_name[0] = "#DE Divide Error";
+  intr_name[1] = "#DB Debug Exception";
+  intr_name[2] = "NMI Interrupt";
+  intr_name[3] = "#BP Breakpoint Exception";
+  intr_name[4] = "#OF Overflow Exception";
+  intr_name[5] = "#BR BOUND Range Exceeded Exception";
+  intr_name[6] = "#UD Invalid Opcode Exception";
+  intr_name[7] = "#NM Device Not Available Exception";
+  intr_name[8] = "#DF Double Fault Exception";
+  intr_name[9] = "Coprocessor Segment Overrun";
+  intr_name[10] = "#TS Invalid TSS Exception";
+  intr_name[11] = "#NP Segment Not Present";
+  intr_name[12] = "#SS Stack Fault Exception";
+  intr_name[13] = "#GP General Protection Exception";
+  intr_name[14] = "#PF Page-Fault Exception";
+  // intr_name[15] 第 15 项是 intel 保留项,未使用
+  intr_name[16] = "#MF x87 FPU Floating-Point Error";
+  intr_name[17] = "#AC Alignment Check Exception";
+  intr_name[18] = "#MC Machine-Check Exception";
+  intr_name[19] = "#XF SIMD Floating-Point Exception";
+}
+
 //完成有关中断的所有初始化工作
 void idt_init() {
   put_str("idt_init start\n");
   idt_desc_init();  //初始化中断描述符
+  exception_init(); //异常名初始化并注册中断处理函数
   pic_init();       //初始化8259A
   
   //加载idt
