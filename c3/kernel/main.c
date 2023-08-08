@@ -1,5 +1,6 @@
 #include "print.h"
 #include "init.h"
+#include "debug.h"
 
 void main() {
   put_str("I am kernel\n");
@@ -13,7 +14,9 @@ void main() {
   // put_char('\n');
   // put_int(0x00000000);
   init_all();
-  asm volatile("sti");
+  //检验assert函数的正确性
+  ASSERT(1==2);
+  // asm volatile("sti");
   while(1);
 }
 

@@ -9,6 +9,10 @@
 #define PIC_S_CTRL   0XA0   //从片的控制端口是0xa0
 #define PIC_S_DATA   0XA1   //数据端口是0xa1
 
+#define EFLAGS_IF    0X00000200 //eflags 寄存器中的 if 位为 1
+#define GET_EFLAGS(EFLAG_VAR) \
+  asm volatile("pushfl; popl %0" : "=g" (EFLAG_VAR))
+
 //中断门描述符结构体，总共8B大小
 struct gate_desc {
   uint16_t func_offset_low_word;//低32位中断处理程序在目标代码段内的偏移量0-15
@@ -126,4 +130,44 @@ void idt_init() {
   //通过内存获取48位操作数
   asm volatile("lidt %0" : : "m" (idt_operand));
   put_str("idt_init done\n");
+}
+
+//开中断并且返回开中断之前的状态
+enum intr_status intr_enable() {
+  enum intr_status old_status;
+  if (INTR_ON == intr_get_status()) {
+    old_status = INTR_ON;
+    return old_status;
+  } else {
+    old_status = INTR_OFF;
+    asm volatile ("sti");   //开中断，sti指令将IF位置为1
+    return old_status;
+  }
+}
+
+//关中断并且返回关中断之前的状态
+enum intr_status intr_disable() {
+  enum intr_status old_status;
+  if (INTR_ON == intr_get_status()) {
+    old_status = INTR_ON;
+    asm volatile("cli": : :"memory"); //关中断，cli指令将IF位置为0
+    return old_status;
+  } else {
+    old_status = INTR_OFF;
+    return old_status;
+  }
+}
+
+//设置中断状态,将中断状态设置为status
+enum intr_status intr_set_status(enum intr_status status) {
+  //如果此时的status包含INTR_ON标志位，表示要设置的状态为ON
+  //否则要设置的状态是OFF
+  return status & INTR_ON ? intr_enable() : intr_disable();
+}
+
+//获取当前中断状态
+enum intr_status intr_get_status() {
+  uint32_t eflags = 0;
+  GET_EFLAGS(eflags);
+  return (EFLAGS_IF & eflags) ? INTR_ON : INTR_OFF;
 }
