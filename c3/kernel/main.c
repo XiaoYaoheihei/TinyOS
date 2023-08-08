@@ -15,7 +15,7 @@ void main() {
   // put_int(0x00000000);
   init_all();
   //检验assert函数的正确性
-  ASSERT(1==2);
+  // ASSERT(1==2);
   // asm volatile("sti");
   while(1);
 }
