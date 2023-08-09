@@ -8,7 +8,7 @@
 //内存位图基地址，此时对应的是虚拟地址，虚拟地址对应的物理地址是在1MB内部
 #define MEM_BITMAP_BASE 0XC009A000
 //堆的起始虚拟地址
-#define K_HEADP_START   0XC0100000
+#define K_HEAP_START   0XC0100000
 
 //在页目录表中定位PDE，返回虚拟地址的高10位
 #define PDE_IDX(addr) ((addr & 0xffc00000) >> 22)
@@ -55,7 +55,7 @@ static void* vaddr_get(enum pool_flags pf, uint32_t pg_cnt) {
   return (void*)vaddr_start;
 }
 
-//得到虚拟地址vaddr对应的pte指针，此时指针的值也是虚拟地址
+//得到虚拟地址vaddr所在的pte的虚拟地址
 //我需要通过返回的指针值找到真正的pte物理地址
 uint32_t* pte_ptr(uint32_t vaddr) {
   //先访问到页目录表
@@ -67,7 +67,7 @@ uint32_t* pte_ptr(uint32_t vaddr) {
   return pte;
 }
 
-//得到虚拟地址vaddr对应的pde指针，指针也是虚拟地址
+//得到虚拟地址vaddr所在的pde的虚拟地址
 //我需要通过返回的指针值找到真正的pde物理地址
 uint32_t* pde_ptr(uint32_t vaddr) {
   //0xfffff用来访问到页目录表本身所在的地址
@@ -93,12 +93,13 @@ static void* palloc(struct pool* m_pool) {
 //页表中添加虚拟地址vaddr和物理地址page_phyaddr的映射
 static void page_table_add(void* _vaddr, void* _page_phyaddr) {
   uint32_t vaddr = (uint32_t)_vaddr, page_phyaddr = (uint32_t)_page_phyaddr;
-  //计算虚拟地址应该对应的pde和pte
+  //计算虚拟地址应该对应的pde虚拟地址和pte虚拟地址
   uint32_t* pde = pde_ptr(vaddr);
   uint32_t* pte = pte_ptr(vaddr);
 
   //先在页目录表中判断目录项是否存在
   //页目录项和页表项的第 0 位为 P，若为 1，则表示该表已存在
+  //c语言的*会自动去所在变量的物理地址处取值
   if (*pde & 0x00000001) {
     //页目录项存在
     ASSERT(!(*pte & 0x00000001));
@@ -113,12 +114,15 @@ static void page_table_add(void* _vaddr, void* _page_phyaddr) {
     }
   } else {
     //页目录项不存在，所以要先创建页目录项再创建页表项
-    //页表中用到的页框一律从内核物理空间分配
+    //页表用到的页框一律从内核物理空间分配
+    //首先要给页表分配内存
     uint32_t pde_phyaddr = (uint32_t)palloc(&kernel_pool);
+    //页目录项中填上对应的页表地址
     *pde = (pde_phyaddr | PG_US_U | PG_RW_W | PG_P_1);
-    //分配到的物理页地址对应的物理内存清0,避免里面的陈旧数据变成了页表项
+    //分配到的页表内对应的物理内存清0,避免里面的陈旧数据变成了页表项
     memset((void*)((int)pte & 0xfffff000), 0, PG_SIZE);
     ASSERT(!(*pte & 0x00000001));
+    //页表项中填充好对应的物理地址
     *pte = (page_phyaddr | PG_US_U | PG_RW_W | PG_P_1);
     //US=1,RW=1,P=1
   }
@@ -234,7 +238,7 @@ static void mem_pool_init(uint32_t all_mem) {
   kernel_vaddr.virtual_addr_bitmap.bits = \
    (void*)(MEM_BITMAP_BASE+kernel_bmp_length+user_bmp_length);
   //设置相应的起始地址
-  kernel_vaddr.virtual_addr_start = K_HEADP_START;
+  kernel_vaddr.virtual_addr_start = K_HEAP_START;
   bitmap_init(&kernel_vaddr.virtual_addr_bitmap);
   put_str("mem_pool_init done\n");
 }
