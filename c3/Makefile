@@ -17,10 +17,27 @@ mbr_loader:
 	nasm -I boot/include/ -o out/boot/${loader} boot/${loader_src} -g
 
 build:
-	nasm -f elf32 -o out/kernel/print.o lib/kernel/print.asm -g
 	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
       -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/main.o  kernel/main.c -m32
-	ld -Ttext 0xc0001500 -e main -o out/kernel/kernel.bin out/kernel/main.o out/kernel/print.o -melf_i386
+	nasm -f elf32 -o out/kernel/print.o lib/kernel/print.asm -g
+	nasm -f elf32 -o out/kernel/kernel.o kernel/kernel.asm
+	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/interrupt.o  kernel/interrupt.c -m32
+	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/init.o  kernel/init.c -m32
+	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/timer.o  device/timer.c -m32
+	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/debug.o  kernel/debug.c -m32
+	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/memory.o  kernel/memory.c -m32
+	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/bitmap.o  lib/kernel/bitmap.c -m32
+	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/string.o  lib/string.c -m32
+	ld -Ttext 0xc0001500 -e main -o out/kernel/kernel.bin out/kernel/main.o \
+	out/kernel/init.o out/kernel/interrupt.o out/kernel/print.o out/kernel/kernel.o \
+	out/kernel/timer.o out/kernel/debug.o out/kernel/memory.o out/kernel/bitmap.o out/kernel/string.o -melf_i386
 
 image:
 	dd if=./out/boot/mbr.bin of=$(img) bs=512 count=1 conv=notrunc
