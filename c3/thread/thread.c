@@ -51,6 +51,9 @@ struct task_struct* thread_start(char* name,
   init_thread(thread, name, prio);
   thread_create(thread, function, func_arg);
 
-
+  //开启线程的关键
+  asm volatile ("movl %[input], %%esp; \
+                pop %%ebp; pop %%ebx; pop %%edi; pop %%esi; \
+                ret": : [input]"g"(thread->self_kstack) : "memory");
   return thread;
 }
