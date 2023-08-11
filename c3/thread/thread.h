@@ -2,6 +2,7 @@
 #define _THREAD_THREAD_H
 
 #include "../lib/stdint.h"
+#include "../lib/kernel/list.h"
 
 // 自定义的通用函数类型
 typedef void thread_func(void*);
@@ -73,6 +74,20 @@ struct task_struct {
   //优先级
   uint8_t priority;
   char name[16];
+  //在CPU上执行的时间滴答数，任务的时间片
+  //每次时钟中断都会将此值-1，当-到0的时候被换下CPU
+  //和前面的优先级需要配合使用
+  uint8_t ticks;
+  //从开始执行到结束执行的总时钟数
+  uint32_t elapsed_ticks;
+  //用于线程在一般队列中的节点
+  struct list_elem general_tag;
+  //用于线程队列中的节点
+  struct list_elem all_list_tag;
+  //进程自己页表的虚拟地址
+  //线程共享所在进程的地址空间，无页表
+  //但是进程有独立的地址空间，有页表
+  uint32_t* pgdir;
   //栈的边界标记，用于检测栈的溢出
   uint32_t stack_magic;
 };
