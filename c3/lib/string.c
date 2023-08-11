@@ -41,7 +41,9 @@ int memcmp(const void* a_, const void* b_, uint32_t size) {
 char* strcpy(char* dst_,const char* src_) {
   ASSERT(dst_ != NULL && src_ != NULL);
   char* r = dst_;   //返回目的字符串地址
-  while(dst_ != src_) {
+  //脑瘫了，写了一个*src != *dst的判读条件
+  //这样肯定会造成缺页异常啊！！！！
+  while(*src_) {  
     *dst_ = *src_;
     dst_++;
     src_++; 
