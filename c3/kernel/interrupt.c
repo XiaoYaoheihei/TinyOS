@@ -2,6 +2,7 @@
 #include "interrupt.h"
 #include "../lib/kernel/io.h"
 #include "../lib/stdint.h"
+#include "../lib/kernel/print.h"
 
 #define IDT_DESC_CNT 0X21   //目前一共支持33种中断
 #define PIC_M_CTRL   0X20   //主片的控制端口是0x20
@@ -28,8 +29,8 @@ char* intr_name[IDT_DESC_CNT];        //保存异常的名字
 //kernel.asm中定义的只是intrXXentry只是中断处理程序的入口
 //最终调用idt_table中的处理程序
 intr_handler idt_table[IDT_DESC_CNT]; 
-
-extern intr_handler intr_entry_table[IDT_DESC_CNT]; //kernel.asm中的中断处理函数入口数组
+//kernel.asm中的中断处理函数入口数组
+extern intr_handler intr_entry_table[IDT_DESC_CNT]; 
 //静态函数声明
 static void make_idt_desc(struct gate_desc* p_gdesc, uint8_t attr, intr_handler function);
 //idt是属于全局数据结构
@@ -76,15 +77,42 @@ static void pic_init(void) {
 }
 
 //通用的中断处理函数,传入的参数是中断向量号
+//一般用于异常出现的时候处理
 static void general_intr_handler(uint8_t vec_nr) {
   if (vec_nr == 0x27 || vec_nr == 0x2f) {
     //IRQ7 和 IRQ15 会产生伪中断（spurious interrupt），无需处理
     //0x2f 是从片 8259A 上的最后一个 IRQ 引脚，保留项
     return;
   }
-  put_str("int vector:0x");
-  put_int(vec_nr);
-  put_char('\n');
+  /* 将光标置为 0，从屏幕左上角清出一片打印异常信息的区域，方便阅读 */
+  set_cursor(0);
+  int cursor_pos = 0;
+  //循环清空4行内容，一行的字符数是80个
+  while (cursor_pos < 320) {
+    put_char(' ');
+    cursor_pos++;
+  }
+  // 重置光标为屏幕左上角
+  set_cursor(0);
+  put_str("!!!!!!!excetion message begin !!!!!!!!\n");
+  // 从第 2 行第 8 个字符开始打印
+  set_cursor(88);
+  put_str(intr_name[vec_nr]);
+  if (vec_nr == 14) {
+    // 若为 Pagefault缺页中断，将缺失的地址打印出来并悬停
+    int page_fault_vaddr = 0;
+    //cr2 是存放造成 page_fault 的地址
+    asm ("movl %%cr2, %0" : "=r" (page_fault_vaddr));
+    put_str("\npage fault addr is ");put_int(page_fault_vaddr);
+  }
+  put_str("\n!!!!!!!excetion message end!!!!!!!!\n");
+  // 能进入中断处理程序就表示已经处在关中断情况下
+  // 不会出现调度进程的情况。故下面的死循环不会再被中断
+  while (1);
+
+  // put_str("int vector:0x");
+  // put_int(vec_nr);
+  // put_char('\n');
 }
 
 //一般的中断处理函数注册
@@ -115,6 +143,12 @@ static void exception_init() {
   intr_name[17] = "#AC Alignment Check Exception";
   intr_name[18] = "#MC Machine-Check Exception";
   intr_name[19] = "#XF SIMD Floating-Point Exception";
+}
+
+//给对应的中断号注册相应的处理函数
+void register_handler(uint8_t vector_nu, intr_handler function) {
+  //idt_table中的内容是函数指针
+  idt_table[vector_nu] = function;
 }
 
 //完成有关中断的所有初始化工作

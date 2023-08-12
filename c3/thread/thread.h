@@ -80,9 +80,9 @@ struct task_struct {
   uint8_t ticks;
   //从开始执行到结束执行的总时钟数
   uint32_t elapsed_ticks;
-  //用于线程在一般队列中的节点
+  //用于线程在就绪队列中的节点
   struct list_elem general_tag;
-  //用于线程队列中的节点
+  //用于线程在全部队列中的节点
   struct list_elem all_list_tag;
   //进程自己页表的虚拟地址
   //线程共享所在进程的地址空间，无页表
@@ -91,8 +91,12 @@ struct task_struct {
   //栈的边界标记，用于检测栈的溢出
   uint32_t stack_magic;
 };
+
+struct task_struct* running_thread();
 void thread_create(struct task_struct* pthread, thread_func function, void* func_argc);
 void init_thread(struct task_struct* pthread, char* name, int prio);
 struct task_struct* thread_start(char* name,int prio,thread_func* function, void* func_arg);
+void schedule();
+void thread_init();
 
 #endif

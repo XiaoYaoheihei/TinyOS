@@ -28,4 +28,6 @@
 
 #define NULL ((void*)0)
 #define bool int
+#define true 1
+#define false 0
 #endif

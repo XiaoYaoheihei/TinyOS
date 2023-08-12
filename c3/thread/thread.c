@@ -5,6 +5,7 @@
 #include "../kernel/memory.h"
 #include "../kernel/interrupt.h"
 #include "../kernel/debug.h"
+#include "../lib/kernel/list.h"
 
 #define PG_SIZE 4096
 
@@ -21,10 +22,12 @@ static struct list_elem* thread_tag;
 extern void switch_to(struct task_struct* cur, struct task_struct* next);
 
 //获取当前线程PCB指针
+//这里的处理方式很关键，因为要切换esp指针！！！！！！！
 struct task_struct* running_thread() {
   uint32_t esp;
   asm ("mov %%esp, %0" : "=g"(esp));
   //取esp整数部分,也就是PCB的起始地址
+  //这一部分原理：
   return (struct task_struct*)(esp & 0xfffff000);
 }
 
@@ -85,7 +88,7 @@ struct task_struct* thread_start(char* name,
 
   //确保此线程之前不在就绪队列中
   ASSERT(!elem_find(&thread_ready_list, &thread->general_tag));
-  //假如就绪队列
+  //加入就绪队列
   list_append(&thread_ready_list, &thread->general_tag);
 
   //确保之前不在队列中
@@ -111,3 +114,43 @@ static void make_main_thread() {
   ASSERT(!elem_find(&thread_all_list, &main_thread->all_list_tag));
   list_append(&thread_all_list, &main_thread->all_list_tag);
 } 
+
+//实现任务调度
+void schedule() {
+  //确保当前是处于关中断的情况下
+  ASSERT(intr_get_status() == INTR_OFF);
+  //获取当前运行线程的PCB
+  struct task_struct* cur = running_thread();
+  if (cur->status == TASK_RUNNING) {
+    //若此线程是CPU时间到了,将其添加到就绪队列尾部
+    ASSERT(!elem_find(&thread_ready_list, &cur->general_tag));
+    list_append(&thread_ready_list, &cur->general_tag);
+    //重新设置ticks
+    cur->ticks = cur->priority;
+    cur->status = TASK_READY;
+  } else {
+    //若此线程需要某件事件发生之后才能继续上CPU运行，不需要加入队列
+    //因为当前线程不在就绪队列中
+  }
+
+  ASSERT(!list_empty(&thread_ready_list));
+  thread_tag = NULL;
+  //将就绪队列中的第一个线程弹出，准备调度上CPU
+  thread_tag = list_pop(&thread_ready_list);
+  //此时的thread_tag仅仅只是一个tag，是pcb中的一个元素信息
+  //要想获得线程的所有信息，必须将其转化成PCB才可以
+  struct task_struct* next = elem2entry(struct task_struct, general_tag, thread_tag);
+  //新的线程可以上CPU了
+  next->status = TASK_RUNNING;
+  switch_to(cur, next);
+}
+
+//c初始化线程环境
+void thread_init() {
+  put_str("thread_init start\n");
+  list_init(&thread_ready_list);
+  list_init(&thread_all_list);
+  //将当前main函数创建为线程
+  make_main_thread();
+  put_str("thread_init done\n");
+}

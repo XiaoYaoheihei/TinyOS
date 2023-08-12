@@ -7,15 +7,12 @@
 extern idt_table
 extern put_str      ;声明外部函数
 section .data
-intr_str db "interrupt occur!", 0xa,0
+; intr_str db "interrupt occur!", 0xa,0
 
 global intr_entry_table
 intr_entry_table:
   %macro VECTOR 2   ;宏的定义
-  section .data
-  dd intr%1entry    ;存储各个中断入口程序的地址
-                    ;形成intr_entry_table数组
-
+  
   section .text
   intr%1entry:      ;每个中断处理程序都需要压入中断向量号
                     ;一个中断类型一个中断处理程序，自己本身需要知道自己的中断向量号
@@ -39,6 +36,11 @@ intr_entry_table:
     jmp intr_exit   ;跳转到恢复上下文环境函数
     ; add esp, 4      ;跳过压入的0或者是错误码
     ; iret
+  
+  section .data
+  dd intr%1entry    ;存储各个中断入口程序的地址
+                    ;形成intr_entry_table数组
+
   %endmacro
 
   section .text
