@@ -123,6 +123,7 @@ void schedule() {
   struct task_struct* cur = running_thread();
   if (cur->status == TASK_RUNNING) {
     //若此线程是CPU时间到了,将其添加到就绪队列尾部
+    //说明此次调度不是由于阻塞发生的
     ASSERT(!elem_find(&thread_ready_list, &cur->general_tag));
     list_append(&thread_ready_list, &cur->general_tag);
     //重新设置ticks
@@ -130,7 +131,7 @@ void schedule() {
     cur->status = TASK_READY;
   } else {
     //若此线程需要某件事件发生之后才能继续上CPU运行，不需要加入队列
-    //因为当前线程不在就绪队列中
+    // TASK_BLOCKED,TASK_WAITING,TASK_HANDING三个事件都不能将线程加入就绪队列中
   }
 
   ASSERT(!list_empty(&thread_ready_list));
@@ -153,4 +154,38 @@ void thread_init() {
   //将当前main函数创建为线程
   make_main_thread();
   put_str("thread_init done\n");
+}
+
+//当前线程自己阻塞，状态设置为stat
+void thread_block(enum task_status stat) {
+  ASSERT((stat == TASK_BLOCKED) || (stat == TASK_WAITING) || (stat == TASK_HANDING));
+  enum intr_status old_status = intr_disable();
+  struct task_struct* cur_thread = running_thread();
+  //设置线程状态
+  cur_thread->status = stat;
+  //将当前线程换下处理器，将当前线程从就绪队列中撤下
+  //并且下一次另一个线程进行schedule的时候不会调度此线程
+  schedule();
+  //在该线程在被换下处理器之后本次就没有机会执行此代码了
+  //只有在该线程被唤醒之后才会执行此函数
+  intr_set_status(old_status);
+}
+
+//阻塞线程pthread解除阻塞
+void thread_unblock(struct task_struct* pthread) {
+  enum intr_status old_status = intr_disable();
+  ASSERT((pthread->status == TASK_BLOCKED) || (pthread->status == TASK_WAITING) || (pthread->status == TASK_HANDING));
+  //这个判读是让自己放心
+  if (pthread->status != TASK_READY) {
+    ASSERT(!elem_find(&thread_ready_list, &pthread->general_tag));
+    //确保当前待唤醒的线程不在就绪队列中，如果在就绪队列中就证明当时线程阻塞的过程中有问题
+    if (elem_find(&thread_ready_list, &pthread->general_tag)) {
+      PANIC("thread_unblock: blocked thread in ready_list\n");
+    }
+    //将阻塞的线程放到就绪队列的最前面，使其尽快得到调度
+    list_push(&thread_ready_list, &pthread->general_tag);
+    //设置状态，表明实现了线程的唤醒
+    pthread->status = TASK_READY;
+  }
+  intr_set_status(old_status);
 }
