@@ -3,6 +3,8 @@
 #include "debug.h"
 #include "memory.h"
 #include "../thread/thread.h"
+#include "../device/console.h"
+
 void k_thread_a(void*);
 void k_thread_b(void*);
 
@@ -27,12 +29,12 @@ void main() {
   // put_int((uint32_t)addr);
   // put_str("\n");
   //检验线程
-  thread_start("k_thread_a", 31, k_thread_a, "argA");
-  thread_start("k_thread_b", 8, k_thread_b, "argB ");
+  thread_start("k_thread_a", 31, k_thread_a, "argA ");
+  // thread_start("k_thread_b", 8, k_thread_b, "argB ");
   //打开中断，使时钟中断起作用
   intr_enable();
   while(1) {
-    put_str("Main ");
+    console_put_str("Main ");
   }
   return 0;
 }
@@ -41,14 +43,22 @@ void k_thread_a(void* a) {
   //void*来通用表示参数，被调用的函数需要知道自己需要什么类型的参数
   char* tmp = a;
   while(1) {
-    put_str(tmp);
+    //关中断
+    intr_disable();
+    console_put_str(tmp);
+    //开中断
+    intr_enable();
   }
 }
 
 void k_thread_b(void* b) {
   char* tmp = b;
   while (1) {
-    put_str(tmp);
+    //关中断
+    intr_disable();
+    console_put_str(tmp);
+    //开中断
+    intr_enable();
   }
 }
 
