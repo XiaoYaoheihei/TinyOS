@@ -5,6 +5,7 @@
 #include "../device/console.h"
 #include "memory.h"
 #include "../thread/thread.h"
+#include "../device/keyboard.h"
 
 //负责初始化所有模块
 void init_all() {
@@ -14,4 +15,5 @@ void init_all() {
   mem_init();   //初始化内存管理系统
   thread_init();
   console_init();//控制台初始化
+  keyboard_init();//键盘初始化
 }

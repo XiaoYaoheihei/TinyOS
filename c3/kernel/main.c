@@ -29,13 +29,14 @@ void main() {
   // put_int((uint32_t)addr);
   // put_str("\n");
   //检验线程
-  thread_start("k_thread_a", 31, k_thread_a, "argA ");
+  // thread_start("k_thread_a", 31, k_thread_a, "argA ");
   // thread_start("k_thread_b", 8, k_thread_b, "argB ");
   //打开中断，使时钟中断起作用
   intr_enable();
-  while(1) {
-    console_put_str("Main ");
-  }
+  while(1);
+  // while(1) {
+  //   console_put_str("Main ");
+  // }
   return 0;
 }
 
