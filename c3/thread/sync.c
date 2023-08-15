@@ -37,7 +37,7 @@ void sema_down(struct semaphore* psema) {
   psema->value--;
   ASSERT(psema->value == 0);
   //恢复之前的中断状态
-  intr_enable(old_status);
+  intr_set_status(old_status);
 }
 
 //信号量的up操作
@@ -51,7 +51,8 @@ void sema_up(struct semaphore* psema) {
   }
   psema->value++;
   ASSERT(psema->value == 1);
-  intr_enable(old_status);
+  //恢复之前的中断状态
+  intr_set_status(old_status);
 }
 
 //获取锁结构
