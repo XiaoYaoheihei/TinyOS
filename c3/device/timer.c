@@ -49,7 +49,8 @@ static void intr_timer_handler() {
   if (cur_thread->ticks == 0) {
     //若进程的时间片用完，开始调度新的进程上CPU
     //调度程序
-    intr_disable();
+    intr_disable();     //在实现多线程调度功能的时候我觉得缺少这个代码
+                        //进入schedule的时候判断是否关中断，但是进入之前没有关闭
     schedule();
   } else {
     cur_thread->ticks--;
