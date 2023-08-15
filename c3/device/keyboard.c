@@ -102,6 +102,9 @@ static char keymap[][2] = {
 /*其它按键暂不处理*/
 };
 
+//定义键盘缓冲区
+struct ioqueue kbd_buf;
+
 //键盘中断处理程序
 static void intr_keyboard_handler() {
   // put_char('k');
@@ -135,6 +138,7 @@ static void intr_keyboard_handler() {
   //断码的第8位为1
   break_code = ((scancode & 0x0080) != 0);
   if (break_code) {
+    // put_str("duan ma");   //调试信息
     //若此次的扫描码是断码
     //得到其make_code
     //由于 ctrl_r 和 alt_r 的 make_code 和 break_code 都是两字节
@@ -152,6 +156,7 @@ static void intr_keyboard_handler() {
     return;
 
   } else if ((scancode > 0x00 && scancode < 0x3b) || (scancode == alt_r_make) || (scancode == ctrl_r_make)) {
+    // put_str("tong ma");  //调试信息
     //若此次扫描码是通码
     //判断是否与shift结合
     bool shift = false;
@@ -192,7 +197,13 @@ static void intr_keyboard_handler() {
     //只处理ASCII码不为0的键
     //可显示字符或者格式控制字符
     if (cur_char) {
-      put_char(cur_char);
+      //如果此时的键盘缓冲区中未满
+      if (!ioq_full(&kbd_buf)) {
+        put_char(cur_char);
+        //临时操作，为了显示问题
+        ioq_putchar(&kbd_buf, cur_char);
+      }
+      // put_char(cur_char);
       return;
     }
     //记录本次是否按下了下面几类控制键之一，供下次键入时判断组合键
@@ -215,6 +226,7 @@ static void intr_keyboard_handler() {
 //键盘初始化
 void keyboard_init() {
   put_str("keyboard init start\n");
+  ioqueue_init(&kbd_buf); //初始化缓冲区
   register_handler(0x21,intr_keyboard_handler);
   put_str("keyboard init down\n");
 }
