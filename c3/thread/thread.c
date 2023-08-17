@@ -6,8 +6,7 @@
 #include "../kernel/interrupt.h"
 #include "../kernel/debug.h"
 #include "../lib/kernel/list.h"
-
-#define PG_SIZE 4096
+#include "../userprog/process.h"
 
 //定义主线程的PCB
 //进入内核之后一直运行的是main函数，其实他就是一个线程
@@ -107,7 +106,7 @@ struct task_struct* thread_start(char* name,
 //在主线程的PCB中写入线程信息
 static void make_main_thread() {
   main_thread = running_thread();
-  init_thread(main_thread, "main", 31);
+  init_thread(main_thread, "main", 1);
 
   //main函数是当前线程，当前线程现在肯定不在thread_ready_list中
   //将其只添加到thread_all_list中
@@ -143,6 +142,8 @@ void schedule() {
   struct task_struct* next = elem2entry(struct task_struct, general_tag, thread_tag);
   //新的线程可以上CPU了
   next->status = TASK_RUNNING;
+  //激活任务页表
+  process_activate(next);
   switch_to(cur, next);
 }
 

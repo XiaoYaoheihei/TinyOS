@@ -3,7 +3,10 @@
 
 #include "../lib/stdint.h"
 #include "../lib/kernel/list.h"
+#include "../lib/kernel/bitmap.h"
+#include "../kernel/memory.h"
 
+#define PG_SIZE 4096
 // 自定义的通用函数类型
 typedef void thread_func(void*);
 
@@ -43,6 +46,7 @@ struct intr_stack{
   uint32_t err_code;
   void (*eip) (void);
   uint32_t cs;
+  uint32_t eflags;
   void* esp;
   uint32_t ss;
 };
@@ -84,13 +88,18 @@ struct task_struct {
   struct list_elem general_tag;
   //用于线程在全部队列中的节点
   struct list_elem all_list_tag;
-  //进程自己页表的虚拟地址
+  //进程自己页目录表的虚拟地址
   //线程共享所在进程的地址空间，无页表
   //但是进程有独立的地址空间，有页表
   uint32_t* pgdir;
+  //用户进程的虚拟地址池
+  struct virtual_addr ueserprog_vaddr;
   //栈的边界标记，用于检测栈的溢出
   uint32_t stack_magic;
 };
+
+extern struct list thread_ready_list;
+extern struct list thread_all_list;
 
 struct task_struct* running_thread();
 void thread_create(struct task_struct* pthread, thread_func function, void* func_argc);

@@ -117,8 +117,10 @@ void process_execute(void* filename, char* name) {
   //在内核内存池中申请pcb信息
   struct task_struct* thread = get_kernel_pages(1);
   init_thread(thread, name, default_prio);
+  //创建用户进程虚拟地址位图
   create_user_vaddr_bitmap(thread);
   thread_create(thread, start_process, filename);
+  //创建页目录表
   thread->pgdir = create_page_dir();
 
   enum intr_status old_status = intr_disable();
@@ -126,5 +128,6 @@ void process_execute(void* filename, char* name) {
   list_append(&thread_ready_list, &thread->general_tag);
 
   ASSERT(!elem_find(&thread_all_list, &thread->all_list_tag));
+  list_append(&thread_all_list, &thread->all_list_tag);
   intr_set_status(old_status);
 }

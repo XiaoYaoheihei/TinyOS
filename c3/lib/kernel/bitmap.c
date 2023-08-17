@@ -35,7 +35,7 @@ int bitmap_scan(struct bitmap* btmp, uint32_t cnt) {
   //在该B逐位比较，返回空闲位的索引
   int idx_bit = 0;
   //和btmp->bits[idx_byte]逐个位比较
-  while ((uint8_t)(BITMAP_MASK << idx_bit) && btmp->bits[idx_byte]) {
+  while ((uint8_t)(BITMAP_MASK << idx_bit) & btmp->bits[idx_byte]) {
     idx_bit++;
   }
 

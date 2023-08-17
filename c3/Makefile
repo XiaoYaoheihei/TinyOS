@@ -20,7 +20,8 @@ build:
 	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
       -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/main.o  kernel/main.c -m32
 	nasm -f elf32 -o out/kernel/print.o lib/kernel/print.asm -g
-	nasm -f elf32 -o out/kernel/kernel.o kernel/kernel.asm
+	nasm -f elf32 -o out/kernel/kernel.o kernel/kernel.asm -g
+	nasm -f elf32 -o out/kernel/switch.o thread/switch.asm -g
 	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
       -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/interrupt.o  kernel/interrupt.c -m32
 	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
@@ -35,9 +36,27 @@ build:
       -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/bitmap.o  lib/kernel/bitmap.c -m32
 	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
       -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/string.o  lib/string.c -m32
+	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/list.o  lib/kernel/list.c -m32
+	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/thread.o  thread/thread.c -m32
+	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/sync.o  thread/sync.c -m32
+	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/console.o  device/console.c -m32
+	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/keyboard.o  device/keyboard.c -m32
+	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/ioqueue.o  device/ioqueue.c -m32
+	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/tss.o  userprog/tss.c -m32
+	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/process.o  userprog/process.c -m32
 	ld -Ttext 0xc0001500 -e main -o out/kernel/kernel.bin out/kernel/main.o \
-	out/kernel/init.o out/kernel/interrupt.o out/kernel/print.o out/kernel/kernel.o \
-	out/kernel/timer.o out/kernel/debug.o out/kernel/memory.o out/kernel/bitmap.o out/kernel/string.o -melf_i386
+	out/kernel/init.o out/kernel/interrupt.o out/kernel/print.o out/kernel/kernel.o out/kernel/switch.o \
+	out/kernel/timer.o out/kernel/debug.o out/kernel/memory.o out/kernel/bitmap.o out/kernel/string.o out/kernel/thread.o \
+	out/kernel/list.o out/kernel/console.o out/kernel/sync.o out/kernel/keyboard.o out/kernel/ioqueue.o out/kernel/tss.o  \
+	out/kernel/process.o -melf_i386
 
 image:
 	dd if=./out/boot/mbr.bin of=$(img) bs=512 count=1 conv=notrunc
@@ -54,16 +73,17 @@ clean:
 #	@-rm -rf kernel/*.img kernel/*.bin kernel/*.o kernel/*~
 #	@-rm -rf *.o *.bin *.img *~
 
-all :out mbr_loader build image run
+all :out mbr_loader build image
 
 #BOCHS_PATH=/home/xiaoyao/desktop/bochs/bin/bochs
 BOCHS_GDB_PATH=/home/xiaoyao/desktop/bochs/bin/bochs
 BOCHS_PORT="target remote 127.0.0.1:1234"
 
 run:
-	${BOCHS_GDB_PATH} -f ../bochsrc_gdb.disk 
+	${BOCHS_GDB_PATH} -qf ../bochsrc_gdb.disk 
 
-gdb:
-	gdb out/kernel/kernel.bin -ex ${BOCHS_PORT}
+gdb:all
+	${BOCHS_GDB_PATH} -qf ../bochsrc_gdb.disk &
+	gdb ./out/kernel/kernel.bin -ex ${BOCHS_PORT}
 	pkill bochs
 	make clean
