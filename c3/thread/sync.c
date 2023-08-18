@@ -22,7 +22,8 @@ void sema_down(struct semaphore* psema) {
   enum intr_status old_status = intr_disable();
   //此时信号量为0,表示锁被别人持有
   while (psema->value == 0) {
-    ASSERT(!elem_find(&psema->waiters, &running_thread()->general_tag));
+    struct list_elem* now = &running_thread()->general_tag;
+    ASSERT(!elem_find(&psema->waiters, now));
     //确保当前线程不在信号量的waiter队列中
     if (elem_find(&psema->waiters, &running_thread()->general_tag)) {
       PANIC("sema_down: thread blocked has been in waiters_list\n");
