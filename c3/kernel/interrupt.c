@@ -161,7 +161,7 @@ void idt_init() {
   
   //加载idt
   //首先得到idt的段界限limit，用作低16位
-  uint64_t idt_operand = ((sizeof(idt) - 1) | ((uint64_t)((uint32_t)idt << 16)));
+  uint64_t idt_operand =  ((sizeof(idt) - 1) | ((uint64_t)(uint32_t)idt << 16));
   //通过内存获取48位操作数
   asm volatile("lidt %0" : : "m" (idt_operand));
   put_str("idt_init done\n");
