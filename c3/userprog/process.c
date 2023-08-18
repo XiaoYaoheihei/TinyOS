@@ -20,7 +20,7 @@ void start_process(void* filename_) {
   proc_stack->gs = 0;		 // 不太允许用户态直接访问显存资源,用户态用不上,直接初始为0
   //用户使用的内存数据区
   proc_stack->ds = proc_stack->es = proc_stack->fs = SELECTOR_U_DATA;
-  //待执行的用户程序地址
+  //待执行的 用户程序地址
   //start_process的参数
   proc_stack->eip = function;	 
   //用户使用的代码段
@@ -36,7 +36,8 @@ void start_process(void* filename_) {
   //将栈 esp 替换刚刚填充好的 proc_stack
   //通过中断出口程序的一系列pop指令和iretd指定，将proc_stack中的数据加载到CPU的寄存器
   //从而进入特权级3
-  asm volatile ("movl %0, %%esp; jmp intr_exit" : : "g" (proc_stack) : "memory");
+  asm volatile ("movl %0, %%esp" : : "g" (proc_stack) : "memory");
+  asm volatile ("jmp intr_exit");
 }
 
 //激活页表

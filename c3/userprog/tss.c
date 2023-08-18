@@ -78,7 +78,7 @@ void tss_init() {
   //一个是供用户使用的代码段
   //一个是供用户使用的数据段
   *((struct gdt_desc*)0xc0000928) = make_gdt_desc((uint32_t*)0, 0xfffff, GDT_CODE_ATTR_LOW_DPL3, GDT_ATTR_HIGH);
-  *((struct gdt_desc*)0xc0000930) = make_gdt_desc((uint32_t*)0, 0xfffff, GDT_DATA_ATTR_LOE_DPL3, GDT_ATTR_HIGH);
+  *((struct gdt_desc*)0xc0000930) = make_gdt_desc((uint32_t*)0, 0xfffff, GDT_DATA_ATTR_LOW_DPL3, GDT_ATTR_HIGH);
   //7个描述符大小
   //定义gdt_operand为ldgt指令的操作数
   //操作数是“16 位表界限&32 位表的起始地址”
