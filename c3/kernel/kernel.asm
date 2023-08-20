@@ -104,3 +104,29 @@ intr_entry_table:
   VECTOR 0x2e, ZERO ;硬盘
   VECTOR 0x2f, ZERO ;保留
   VECTOR 0x30, ZERO
+
+;--------------0X80中断
+[bits 32]
+extern syscall_table
+section .text
+global syscall_handler
+syscall_handler:
+  ;第一步保存上下文环境
+  push 0    ;压入0，使栈中格式统一
+  push ds
+  push es
+  push fs
+  push gs
+  pushad    ; PUSHAD 指令压入 32 位寄存器，其入栈顺序是:
+            ;eax,ecx,edx,ebx,esp,ebp,esi,edi
+  push 0X80
+  ;第二步为系统调用子功能传入参数
+  push edx  ;第3个参数
+  push ecx  ;第2个参数
+  push ebx  ;第1个参数
+  ;第三步调用子功能处理函数，eax作为索引来查找
+  call [syscall_table + eax*4]
+  add esp, 12 ;跨过3个参数
+  ;第四步将call返回的值存入当前内核栈中eax的位置
+  mov [esp + 8*4], eax
+  jmp intr_exit
