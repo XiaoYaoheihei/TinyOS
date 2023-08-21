@@ -3,6 +3,7 @@
 
 #include "../lib/stdint.h"
 #include "../lib/kernel/bitmap.h"
+#include "../lib/kernel/list.h"
 
 //虚拟地址池，用于虚拟地址管理
 struct virtual_addr {
@@ -18,6 +19,24 @@ enum pool_flags {
   PF_KERNEL = 1,  //内核物理内存池
   PF_USER = 2     //用户内存池
 };
+
+//内存块
+struct mem_block{
+  struct list_elem free_elem;
+};
+
+//内存块描述符
+struct mem_block_desc {
+  //内存块大小
+  uint32_t block_size;
+  //本 arena 中可容纳此 mem_block 的数量
+  uint32_t blocks_per_arena;
+  //目前可用的 mem_block 链表
+  struct list free_list;
+};
+//内存块描述符个数
+#define DESC_CNT 7
+
 //内存操作中少不了的操作就是修改页表
 //最后这些位直接|运算就可以得到相应的值，不用设置为1然后左移右移
 #define PG_P_1 1  //此页存在
@@ -38,5 +57,6 @@ uint32_t* pde_ptr(uint32_t vaddr);
 uint32_t addr_v2p(uint32_t vaddr);
 void* get_a_page(enum pool_flags pf, uint32_t vaddr);
 void* get_user_pages(uint32_t pg_cnt);
-
+void block_desc_init(struct mem_block_desc* desc_array);
+void* sys_malloc(uint32_t size);
 #endif
