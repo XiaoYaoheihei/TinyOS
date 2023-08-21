@@ -8,6 +8,7 @@
 #include "../userprog/process.h"
 #include "../userprog/syscall_init.h"
 #include "../lib/user/syscall.h"
+#include "../lib/stdio.h"
 
 void k_thread_a(void*);
 void k_thread_b(void*);
@@ -88,9 +89,9 @@ void k_thread_a(void* arg) {
 	console_put_str(" thread_a_pid:0x");
 	console_put_int(sys_getpid());
 	console_put_char('\n');
-	console_put_str(" prog_a_pid:0x");
-	console_put_int(prog_a_pid);
-	console_put_char('\n');
+	// console_put_str(" prog_a_pid:0x");
+	// console_put_int(prog_a_pid);
+	// console_put_char('\n');
 	while(1);
 }
 
@@ -104,16 +105,17 @@ void k_thread_b(void* arg) {
 	console_put_str(" thread_b_pid:0x");
 	console_put_int(sys_getpid());
 	console_put_char('\n');
-	console_put_str(" prog_b_pid:0x");
-	console_put_int(prog_b_pid);
-	console_put_char('\n');
+	// console_put_str(" prog_b_pid:0x");
+	// console_put_int(prog_b_pid);
+	// console_put_char('\n');
 	while(1);
 }
 
 /* 测试用户进程 */
 void u_prog_a(void) {
-   prog_a_pid = getpid();
-	 while(1);
+  char* name = "prog_a";
+  printf(" I am %s, my pid:%d%c", name, getpid(),'\n');
+	while(1);
 	 /* {
 			//目前用户进程不可以使用特权级为0的指令
       // console_put_int(test_var_a);
@@ -122,9 +124,10 @@ void u_prog_a(void) {
 }
 
 /* 测试用户进程 */
-void u_prog_b(void) {
-   prog_b_pid = getpid();
-	 while(1);
+void u_prog_b() {
+  char* name = "prog_b";
+  printf(" I am %s, my pid:%d%c", name, getpid(),'\n');
+	while(1);
 	 /* {
       // test_var_b++;
    }*/
