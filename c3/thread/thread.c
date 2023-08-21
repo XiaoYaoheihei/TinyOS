@@ -7,6 +7,7 @@
 #include "../kernel/debug.h"
 #include "../lib/kernel/list.h"
 #include "../userprog/process.h"
+#include "sync.h"
 
 //定义主线程的PCB
 //进入内核之后一直运行的是main函数，其实他就是一个线程
@@ -15,6 +16,8 @@ struct task_struct* main_thread;
 struct list thread_ready_list;
 //所有任务队列
 struct list thread_all_list;
+//分配pid锁
+struct lock pid_lock;
 //保存队列中的线程节点
 static struct list_elem* thread_tag;
 
@@ -52,9 +55,20 @@ void thread_create(struct task_struct* pthread, thread_func function, void* func
   kthread_stack->esi = kthread_stack->edi = 0;
 }
 
+//分配pid
+static pid_t allocate_pid() {
+  static pid_t next_pid = 0;
+  lock_acquire(&pid_lock);
+  next_pid++;
+  lock_release(&pid_lock);
+  return next_pid;
+}
+
 //初始化线程对应的PCB基本信息
 void init_thread(struct task_struct* pthread, char* name, int prio) {
   memset(pthread, 0, sizeof(*pthread));
+  //分配线程pid
+  pthread->pid = allocate_pid();
   strcpy(pthread->name, name);
   if (pthread == main_thread) {
     pthread->status = TASK_RUNNING;
@@ -152,6 +166,7 @@ void thread_init() {
   put_str("thread_init start\n");
   list_init(&thread_ready_list);
   list_init(&thread_all_list);
+  lock_init(&pid_lock);
   //将当前main函数创建为线程
   make_main_thread();
   put_str("thread_init done\n");

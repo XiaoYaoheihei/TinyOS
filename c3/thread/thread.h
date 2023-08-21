@@ -9,6 +9,7 @@
 #define PG_SIZE 4096
 // 自定义的通用函数类型
 typedef void thread_func(void*);
+typedef int16_t pid_t;
 
 // 进程或者线程的状态
 enum task_status{
@@ -74,6 +75,7 @@ struct thread_stack{
 struct task_struct {
   //各个内核线程自己的内核栈
   uint32_t* self_kstack;
+  pid_t pid;
   enum task_status status;
   //优先级
   uint8_t priority;
@@ -94,6 +96,8 @@ struct task_struct {
   uint32_t* pgdir;
   //用户进程的虚拟地址池
   struct virtual_addr ueserprog_vaddr;
+  //用户进程内存块描述符
+  struct mem_block_desc u_block_desc[DESC_CNT];
   //栈的边界标记，用于检测栈的溢出
   uint32_t stack_magic;
 };
