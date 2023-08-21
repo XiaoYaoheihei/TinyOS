@@ -25,7 +25,7 @@
 })
 
 //两个参数的调用
-#define _syscall1(NUMBER, ARG1, ARG2)({ \
+#define _syscall2(NUMBER, ARG1, ARG2)({ \
   int retval;     \
   asm volatile(   \
   "int $0x80"     \
@@ -50,4 +50,9 @@
 
 uint32_t getpid() {
   return _syscall0(SYS_GETPID);
+}
+
+//打印字符串
+uint32_t write(char* str) {
+  return _syscall1(SYS_WRITE, str);
 }
