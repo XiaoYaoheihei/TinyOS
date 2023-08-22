@@ -33,8 +33,8 @@ void main() {
   //打开中断，使时钟中断起作用
   // intr_set_status(old_status);
   intr_enable();
-  // process_execute(u_prog_a, "user_a");
-  // process_execute(u_prog_b, "user_b");
+  process_execute(u_prog_a, "user_a");
+  process_execute(u_prog_b, "user_b");
   thread_start("con_thread_a", 31, k_thread_a, "A_ ");
   thread_start("con_thread_b", 31, k_thread_b, "B_ ");
   while(1);
@@ -84,8 +84,9 @@ void k_thread_a(void* arg) {
    console_put_int((int)addr3);
    console_put_char('\n');
 
-   int cpu_delay = 100000;
-  //  while(cpu_delay-- > 0);
+   int cpu_delay = 1000000;
+   //用来模拟内核线程虚拟地址空间可以累加的情况
+   while(cpu_delay-- > 0);
    sys_free(addr1);
    sys_free(addr2);
    sys_free(addr3);
@@ -105,7 +106,7 @@ void k_thread_b(void* arg) {
    console_put_char('\n');
 
    int cpu_delay = 100000;
-  //  while(cpu_delay-- > 0);
+   while(cpu_delay-- > 0);
    sys_free(addr1);
    sys_free(addr2);
    sys_free(addr3);
