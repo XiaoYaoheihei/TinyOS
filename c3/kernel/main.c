@@ -33,10 +33,10 @@ void main() {
   //打开中断，使时钟中断起作用
   // intr_set_status(old_status);
   intr_enable();
-  process_execute(u_prog_a, "user_a");
-  process_execute(u_prog_b, "user_b");
-  thread_start("con_thread_a", 31, k_thread_a, "A_ ");
-  thread_start("con_thread_b", 31, k_thread_b, "B_ ");
+  // process_execute(u_prog_a, "user_a");
+  // process_execute(u_prog_b, "user_b");
+  // thread_start("con_thread_a", 31, k_thread_a, "A_ ");
+  // thread_start("con_thread_b", 31, k_thread_b, "B_ ");
   while(1);
   return 0;
 }

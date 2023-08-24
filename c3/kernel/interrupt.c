@@ -75,10 +75,11 @@ static void pic_init(void) {
   outb (PIC_S_DATA, 0x01);  //icw4,8086 模式, 正常 EOI
   //打开主片上的IR0,目前只是接收时钟产生的中断，屏蔽掉其他所有的中断
   //此时发送的任何数据都是操作控制字，即是ocw
-  //0表示不屏蔽，1表示屏蔽
-  //此时是为了测试键盘，只打开键盘中断，其他的全部关闭
-  outb (PIC_M_DATA, 0xfe);  //主片上第0位表示不屏蔽时钟中断，其他位都屏蔽
-  outb (PIC_S_DATA, 0xff);  //从片上的所有外设都屏蔽
+  
+  //IRQ2 用于级联从片，必须打开，否则无法响应从片上的中断
+  //主片上打开的中断有 IRQ0 的时钟，IRQ1 的键盘和级联从片的 IRQ2,其他都关闭
+  outb (PIC_M_DATA, 0xf8);  
+  outb (PIC_S_DATA, 0xbf);  //打开从片上的 IRQ14，此引脚接收硬盘控制器的中断
   put_str(" pic_init done\n");
 
 }

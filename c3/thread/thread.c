@@ -12,6 +12,8 @@
 //定义主线程的PCB
 //进入内核之后一直运行的是main函数，其实他就是一个线程
 struct task_struct* main_thread;
+//idle 线程
+struct task_struct* idle_thread;
 //就绪队列
 struct list thread_ready_list;
 //所有任务队列
@@ -22,6 +24,17 @@ struct lock pid_lock;
 static struct list_elem* thread_tag;
 
 extern void switch_to(struct task_struct* cur, struct task_struct* next);
+
+//系统空闲时运行的线程
+static void idle(void* arg UNUSED) {
+  while (1) {
+    thread_block(TASK_BLOCKED);
+    //执行 hlt 时必须要保证目前处在开中断的情况下
+    //hlt 指令的功能让处理器停止执行指令，也就是将处理器挂起,处理器停止运行
+    //当有外部中断发生的时候，处理器恢复执行后续的指令
+    asm volatile("sti; hlt": : :"memory");
+  }
+}
 
 //获取当前线程PCB指针
 //这里的处理方式很关键，因为要切换esp指针！！！！！！！
@@ -147,6 +160,11 @@ void schedule() {
     // TASK_BLOCKED,TASK_WAITING,TASK_HANDING三个事件都不能将线程加入就绪队列中
   }
 
+  //如果就绪队列中没有可运行的任务，就唤醒 idle
+  if (list_empty(&thread_ready_list)) {
+    thread_unblock(idle_thread);
+  }
+
   ASSERT(!list_empty(&thread_ready_list));
   thread_tag = NULL;
   //将就绪队列中的第一个线程弹出，准备调度上CPU
@@ -161,6 +179,18 @@ void schedule() {
   switch_to(cur, next);
 }
 
+//主动让出 cpu，换其他线程运行
+void thread_yield() {
+  struct task_struct* cur = running_thread();
+  enum intr_status old_status = intr_disable();
+  ASSERT(!elem_find(&thread_ready_list, &cur->general_tag));
+  //schedule之前的两个步骤必须保证是原子操作
+  list_append(&thread_ready_list, &cur->general_tag);
+  cur->status = TASK_READY;
+  schedule();
+  intr_set_status(old_status);
+}
+
 //c初始化线程环境
 void thread_init() {
   put_str("thread_init start\n");
@@ -169,6 +199,8 @@ void thread_init() {
   lock_init(&pid_lock);
   //将当前main函数创建为线程
   make_main_thread();
+  //创建idle线程
+  idle_thread = thread_start("idle", 10, idle, NULL);
   put_str("thread_init done\n");
 }
 
