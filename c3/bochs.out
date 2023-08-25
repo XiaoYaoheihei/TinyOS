@@ -30,7 +30,7 @@
 00000000000i[     ]   SB16 support: no
 00000000000i[     ]   USB support: no
 00000000000i[     ]   VGA extension support: vbe
-00000000000i[MEM0 ] allocated memory at 0x7ff8d29dd010. after alignment, vector=0x7ff8d29de000
+00000000000i[MEM0 ] allocated memory at 0x7f287e1dd010. after alignment, vector=0x7f287e1de000
 00000000000i[MEM0 ] 32.00MB
 00000000000i[MEM0 ] mem block size = 0x00100000, blocks=32
 00000000000i[MEM0 ] rom at 0xfffe0000/131072 ('/home/xiaoyao/desktop/bochs/share/bochs/BIOS-bochs-latest')
@@ -40,7 +40,7 @@
 00000000000i[DEV  ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[     ] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS ] Using local time for initial clock
-00000000000i[CMOS ] Setting initial clock to: Thu Aug 17 16:28:00 2023 (time0=1692260880)
+00000000000i[CMOS ] Setting initial clock to: Fri Aug 25 21:11:20 2023 (time0=1692969080)
 00000000000i[     ] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA  ] channel 4 used by cascade
 00000000000i[     ] init_dev of 'pic' plugin device by virtual method
@@ -66,10 +66,15 @@
 00000000000i[     ] init_dev of 'keyboard' plugin device by virtual method
 00000000000i[KBD  ] will paste characters every 400 keyboard ticks
 00000000000i[     ] init_dev of 'harddrv' plugin device by virtual method
-00000000000i[HD   ] HD on ata0-0: '/home/xiaoyao/desktop/bochs/hd60M.img', 'flat' mode
-00000000000i[IMG  ] hd_size: 31997952
-00000000000i[HD   ] ata0-0: using specified geometry: CHS=62/16/63
+00000000000i[HD   ] HD on ata0-0: 'os.img', 'flat' mode
+00000000000i[IMG  ] hd_size: 31457280
+00000000000i[HD   ] ata0-0: using specified geometry: CHS=58/16/63
+00000000000i[HD   ] ata0-0: extra data outside of CHS address range
+00000000000i[HD   ] HD on ata0-1: 'hd80.img', 'flat' mode
+00000000000i[IMG  ] hd_size: 83607552
+00000000000i[HD   ] ata0-1: using specified geometry: CHS=162/16/63
 00000000000i[HD   ] translation on ata0-0 set to 'none'
+00000000000i[HD   ] translation on ata0-1 set to 'none'
 00000000000i[HD   ] Using boot sequence disk, none, none
 00000000000i[HD   ] Floppy boot signature check is enabled
 00000000000i[     ] init_dev of 'pci_ide' plugin device by virtual method
@@ -210,102 +215,9 @@
 00001529158i[BXVGA] VBE known Display Interface b0c5
 00001532083i[VBIOS] VBE Bios $Id: vbe.c,v 1.64 2011/07/19 18:25:05 vruppert Exp $
 00001600000i[XGUI ] charmap update. Font Height is 16
-00001871543i[BIOS ] ata0-0: PCHS=62/16/63 translation=none LCHS=62/16/63
-00005748749i[BIOS ] IDE time out
-00017824347i[BIOS ] Booting from 0000:7c00
-00018038422i[MEM0 ] allocate_block: block=0x1 used 0x3 of 0x20
-00018139109i[MEM0 ] allocate_block: block=0x2 used 0x4 of 0x20
-00020131097i[CPU0 ] CPU is in protected mode (active)
-00020131097i[CPU0 ] CS.mode = 32 bit
-00020131097i[CPU0 ] SS.mode = 32 bit
-00020131097i[CPU0 ] EFER   = 0x00000000
-00020131097i[CPU0 ] | EAX=00000000  EBX=c0008000  ECX=c0119000  EDX=c0101000
-00020131097i[CPU0 ] | ESP=c0100e38  EBP=c0100e50  ESI=00000000  EDI=00000000
-00020131097i[CPU0 ] | IOPL=0 id vip vif ac vm RF nt of df IF tf SF zf AF PF CF
-00020131097i[CPU0 ] | SEG sltr(index|ti|rpl)     base    limit G D
-00020131097i[CPU0 ] |  CS:0008( 0001| 0|  0) 00000000 ffffffff 1 1
-00020131097i[CPU0 ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00020131097i[CPU0 ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00020131097i[CPU0 ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00020131097i[CPU0 ] |  FS:0000( 0000| 0|  0) 00000000 00000000 0 0
-00020131097i[CPU0 ] |  GS:0018( 0003| 0|  0) c00b8000 00007fff 1 1
-00020131097i[CPU0 ] | EIP=c0001b16 (c0001b16)
-00020131097i[CPU0 ] | CR0=0xe0000011 CR2=0x00008620
-00020131097i[CPU0 ] | CR3=0x00218000 CR4=0x00000000
-00020131097i[CPU0 ] 0xc0001b16>> leave  : C9
-00020131097e[CPU0 ] exception(): 3rd (14) exception with no resolution, shutdown status is 00h, resetting
-00020131097i[SYS  ] bx_pc_system_c::Reset(HARDWARE) called
-00020131097i[CPU0 ] cpu hardware reset
-00020131097i[APIC0] allocate APIC id=0 (MMIO enabled) to 0x0000fee00000
-00020131097i[CPU0 ] CPUID[0x00000000]: 00000005 756e6547 6c65746e 49656e69
-00020131097i[CPU0 ] CPUID[0x00000001]: 00000633 00010800 00000008 1fcbfbff
-00020131097i[CPU0 ] CPUID[0x00000002]: 00410601 00000000 00000000 00000000
-00020131097i[CPU0 ] CPUID[0x00000003]: 00000000 00000000 00000000 00000000
-00020131097i[CPU0 ] CPUID[0x00000004]: 00000000 00000000 00000000 00000000
-00020131097i[CPU0 ] CPUID[0x00000005]: 00000040 00000040 00000003 00000020
-00020131097i[CPU0 ] CPUID[0x80000000]: 80000008 00000000 00000000 00000000
-00020131097i[CPU0 ] CPUID[0x80000001]: 00000000 00000000 00000000 00000000
-00020131097i[CPU0 ] CPUID[0x80000002]: 20202020 20202020 20202020 6e492020
-00020131097i[CPU0 ] CPUID[0x80000003]: 286c6574 50202952 69746e65 52286d75
-00020131097i[CPU0 ] CPUID[0x80000004]: 20342029 20555043 20202020 00202020
-00020131097i[CPU0 ] CPUID[0x80000005]: 01ff01ff 01ff01ff 40020140 40020140
-00020131097i[CPU0 ] CPUID[0x80000006]: 00000000 42004200 02008140 00000000
-00020131097i[CPU0 ] CPUID[0x80000007]: 00000000 00000000 00000000 00000000
-00020131097i[CPU0 ] CPUID[0x80000008]: 00002028 00000000 00000000 00000000
-00020131097i[     ] reset of 'pci' plugin device by virtual method
-00020131097i[     ] reset of 'pci2isa' plugin device by virtual method
-00020131097i[     ] reset of 'cmos' plugin device by virtual method
-00020131097i[     ] reset of 'dma' plugin device by virtual method
-00020131097i[     ] reset of 'pic' plugin device by virtual method
-00020131097i[     ] reset of 'pit' plugin device by virtual method
-00020131097i[     ] reset of 'floppy' plugin device by virtual method
-00020131097i[     ] reset of 'vga' plugin device by virtual method
-00020131097i[     ] reset of 'acpi' plugin device by virtual method
-00020131097i[     ] reset of 'ioapic' plugin device by virtual method
-00020131097i[     ] reset of 'keyboard' plugin device by virtual method
-00020131097i[     ] reset of 'harddrv' plugin device by virtual method
-00020131097i[     ] reset of 'pci_ide' plugin device by virtual method
-00020131097i[     ] reset of 'unmapped' plugin device by virtual method
-00020131097i[     ] reset of 'biosdev' plugin device by virtual method
-00020131097i[     ] reset of 'speaker' plugin device by virtual method
-00020131097i[     ] reset of 'extfpuirq' plugin device by virtual method
-00020131097i[     ] reset of 'parallel' plugin device by virtual method
-00020131097i[     ] reset of 'serial' plugin device by virtual method
-00020131098i[GDBST] stopped with ac0
-00020131098i[XGUI ] Mouse capture off
-00020131098i[XGUI ] Mouse capture off
-00020131098i[XGUI ] Mouse capture off
-00020131098i[GDBST] addr 000000000000fff0 len 1
-00020131098i[XGUI ] Mouse capture off
-00020131098i[GDBST] addr 000000000000fff0 len 1
-00020131098i[XGUI ] Mouse capture off
-00020131098i[GDBST] addr 000000000000ffc0 len 40
-00020131098i[XGUI ] Mouse capture off
-00020131098i[GDBST] addr 000000000000fff0 len 8
-00020131098i[XGUI ] Mouse capture off
-00020131098i[GDBST] addr 000000000000fff0 len 7
-00020131098i[XGUI ] Mouse capture off
-00020131098i[XGUI ] Mouse capture off
-00020131098p[GDBST] >>PANIC<< Debugger asked us to quit
-00020131098i[CPU0 ] CPU is in real mode (active)
-00020131098i[CPU0 ] CS.mode = 16 bit
-00020131098i[CPU0 ] SS.mode = 16 bit
-00020131098i[CPU0 ] EFER   = 0x00000000
-00020131098i[CPU0 ] | EAX=00000000  EBX=00000000  ECX=00000000  EDX=00000000
-00020131098i[CPU0 ] | ESP=00000000  EBP=00000000  ESI=00000000  EDI=00000000
-00020131098i[CPU0 ] | IOPL=0 id vip vif ac vm rf nt of df if tf sf zf af pf cf
-00020131098i[CPU0 ] | SEG sltr(index|ti|rpl)     base    limit G D
-00020131098i[CPU0 ] |  CS:f000( 1e00| 0|  0) ffff0000 0000ffff 0 0
-00020131098i[CPU0 ] |  DS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
-00020131098i[CPU0 ] |  SS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
-00020131098i[CPU0 ] |  ES:0000( 0000| 0|  0) 00000000 0000ffff 0 0
-00020131098i[CPU0 ] |  FS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
-00020131098i[CPU0 ] |  GS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
-00020131098i[CPU0 ] | EIP=0000fff0 (0000fff0)
-00020131098i[CPU0 ] | CR0=0x60000010 CR2=0x00000000
-00020131098i[CPU0 ] | CR3=0x00000000 CR4=0x00000000
-00020131098i[CPU0 ] 0x0000fff0>> jmp far f000:e05b : EA5BE000F0
-00020131098i[CMOS ] Last time is 1692260885 (Thu Aug 17 16:28:05 2023)
-00020131098i[XGUI ] Exit
-00020131098i[     ] restoring default signal behavior
-00020131098i[CTRL ] quit_sim called with exit code 1
+00001871593i[BIOS ] ata0-0: PCHS=58/16/63 translation=none LCHS=58/16/63
+00001925626i[BIOS ] ata0-1: PCHS=162/16/63 translation=none LCHS=162/16/63
+00014089413i[BIOS ] Booting from 0000:7c00
+00014303488i[MEM0 ] allocate_block: block=0x1 used 0x3 of 0x20
+00014410470i[MEM0 ] allocate_block: block=0x2 used 0x4 of 0x20
+00424000003p[     ] >>PANIC<< SIGNAL 2 caught

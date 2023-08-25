@@ -1,6 +1,7 @@
 .PHONY:build image clean run out
 
-img=/home/xiaoyao/desktop/bochs/hd60M.img
+img=os.img
+img1=file.img
 
 mbr_src=mbr.asm
 loader_src=loader.asm
@@ -15,7 +16,6 @@ out:
 mbr_loader:
 	nasm -I boot/include/ -o out/boot/${mbr} boot/${mbr_src} -g
 	nasm -I boot/include/ -o out/boot/${loader} boot/${loader_src} -g
-
 build:
 	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
       -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/main.o  kernel/main.c -m32
@@ -24,7 +24,7 @@ build:
 	nasm -f elf32 -o out/kernel/switch.o thread/switch.asm -g
 	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
       -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/interrupt.o  kernel/interrupt.c -m32
-	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
+	gcc -I lib -I device -I lib/kernel -I thread -I kernel -I fs -c -fno-builtin -W -Wstrict-prototypes \
       -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/init.o  kernel/init.c -m32
 	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
       -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/timer.o  device/timer.c -m32
@@ -52,13 +52,28 @@ build:
       -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/tss.o  userprog/tss.c -m32
 	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
       -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/process.o  userprog/process.c -m32
+	gcc -I lib/kernel -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/syscall.o  lib/user/syscall.c -m32
+	gcc -I lib/kernel -I thread -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/syscall_init.o  userprog/syscall_init.c -m32
+	gcc -I lib/kernel -I thread -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/stdio.o  lib/stdio.c -m32
+	gcc -I lib/kernel -I thread -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/ide.o  device/ide.c -m32
+	gcc -I lib/kernel -I thread -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/stdio_kernel.o  lib/kernel/stdio_kernel.c -m32
+	gcc -I lib -I device -I lib/kernel -I thread -I kernel -c -fno-builtin -W -Wstrict-prototypes \
+      -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/fs.o fs/fs.c -m32
+
 	ld -Ttext 0xc0001500 -e main -o out/kernel/kernel.bin out/kernel/main.o \
 	out/kernel/init.o out/kernel/interrupt.o out/kernel/print.o out/kernel/kernel.o out/kernel/switch.o \
 	out/kernel/timer.o out/kernel/debug.o out/kernel/memory.o out/kernel/bitmap.o out/kernel/string.o out/kernel/thread.o \
 	out/kernel/list.o out/kernel/console.o out/kernel/sync.o out/kernel/keyboard.o out/kernel/ioqueue.o out/kernel/tss.o  \
-	out/kernel/process.o -melf_i386
+	out/kernel/process.o out/kernel/syscall.o out/kernel/syscall_init.o out/kernel/stdio.o out/kernel/ide.o out/kernel/stdio_kernel.o \
+	out/kernel/fs.o -melf_i386
 
 image:
+	dd if=/dev/zero of=$(img) bs=512 count=61440
 	dd if=./out/boot/mbr.bin of=$(img) bs=512 count=1 conv=notrunc
 	dd if=./out/boot/loader.bin of=$(img) bs=512 seek=2 count=3 conv=notrunc
 	dd if=./out/kernel/kernel.bin of=$(img) bs=512 seek=9 count=200 conv=notrunc

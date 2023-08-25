@@ -10,7 +10,8 @@
 // 最大文件名长度
 #define MAX_FILE_NAME_LEN 16
 
-//目录结构
+//目录结构，他不是磁盘上存在的
+//我们在进行目录相关的操作的时候，在内存中创建的数据结构
 struct dir {
   struct inode* inode;
   //记录在目录内的偏移

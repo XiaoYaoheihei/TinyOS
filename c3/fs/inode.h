@@ -3,11 +3,13 @@
 #include "stdint.h"
 #include "list.h"
 
+//inode结构信息
 struct inode {
   // inode 编号
   uint32_t i_no;
   //当此 inode 是文件时，i_size 是指文件大小
   //若此 inode 是目录，i_size 是指该目录下所有目录项大小之和
+  //这里是以字节为大小，并不是以数据块为单位的
   uint32_t i_size;
   //记录此文件被打开的次数
   uint32_t i_open_cnts;

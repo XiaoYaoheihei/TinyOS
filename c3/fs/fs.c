@@ -2,6 +2,7 @@
 #include "ide.h"
 #include "dir.h"
 #include "super_block.h"
+//上面都是本目录下的头文件，下面都是其他目录下的头文件
 #include "stdio_kernel.h"
 
 //格式化分区，也就是初始化分区的元信息，创建文件系统
@@ -56,14 +57,15 @@ static void partition_format(struct partition* part) {
   sb.inode_bitmap_sects, sb.inode_table_lba,\
   sb.inode_table_sects, sb.data_start_lba);
 
-  //
+  //获取分区 part 自己所属的硬盘 hd
   struct disk* hd = part->my_disk;
-  //将超级块写入本分区的 1 扇区
+  //将超级块写入本分区的 1 扇区,跨过引导扇区
   ide_write(hd, part->start_lba+1, &sb, 1);
   printk("  super_block_lba:0x%x\n", part->start_lba + 1);
   //找出数据量最大的元信息，用其尺寸做存储缓冲区
   uint32_t buf_size = (sb.block_bitmap_sects >= sb.inode_bitmap_sects ? sb.block_bitmap_sects : sb.inode_bitmap_sects);
   buf_size = (buf_size >= sb.inode_table_sects ? buf_size : sb.inode_table_sects)*SECTOR_SIZE;
+  //buf作为通用的缓冲区
   uint8_t* buf = (uint8_t*)sys_malloc(buf_size);
 
   //将块位图初始化并写入 sb.block_bitmap_lba
@@ -72,7 +74,7 @@ static void partition_format(struct partition* part) {
   buf[0] |= 0x01;
   uint32_t block_bitmap_last_byte = block_bitmap_bit_len / 8;
   uint8_t block_bitmap_last_bit = block_bitmap_bit_len % 8;
-  //last_size 是位图所在最后一个扇区中，不足一扇区的其余部分
+  //last_size 是块位图所在最后一个扇区中，不足一扇区的其余部分
   uint32_t last_size = SECTOR_SIZE - (block_bitmap_last_byte % SECTOR_SIZE);
 
   //先将位图最后一字节到其所在的扇区的结束全置为 1,即超出实际块数的部分直接置为已占用
@@ -84,7 +86,7 @@ static void partition_format(struct partition* part) {
   }
   ide_write(hd, sb.block_bitmap_lba, buf, sb.block_bitmap_sects);
 
-  //将 inode 位图初始化并写入 sb.inode_bitmap_lba
+  //将 inode 位图初始化并写入磁盘扇区 sb.inode_bitmap_lba
   //先清空缓冲区
   memset(buf, 0, buf_size);
   // 第 0 个 inode 分给了根目录
@@ -103,10 +105,11 @@ static void partition_format(struct partition* part) {
   //根目录占 inode 数组中第 0 个 inode
   i->i_no = 0;
   // 由于上面的 memset，i_sectors 数组的其他元素都初始化为 0
+  //把根目录放在最开始的空闲块中
   i->i_sectors[0] = sb.data_start_lba;
+  //将根目录写入sb.data_start_lba
   ide_write(hd, sb.inode_table_lba, buf, sb.inode_table_sects);
 
-  //将根目录写入sb.data_start_lba
   //写入根目录的两个目录项.和..
   memset(buf, 0, buf_size);
   struct dir_entry* p_de = (struct dir_entry*)buf;

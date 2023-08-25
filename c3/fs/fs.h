@@ -22,4 +22,5 @@ enum file_types {
   FT_DIRECTORY
 };
 
+void filesys_init();
 #endif

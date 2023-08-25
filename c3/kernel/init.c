@@ -9,6 +9,7 @@
 #include "../userprog/tss.h"
 #include "../userprog/syscall_init.h"
 #include "../device/ide.h"
+#include  "fs.h"
 
 //负责初始化所有模块
 void init_all() {
@@ -23,4 +24,5 @@ void init_all() {
   syscall_init(); //初始化系统调用
   intr_enable();  //后续的ide_init需要打开中断
   ide_init();     //初始化硬盘信息
+  filesys_init(); //初始化文件系统
 }
