@@ -10,7 +10,9 @@
 // 扇区字节大小
 #define SECTOR_SIZE 512
 //块字节大小
-#define BLOCK_SIZE_ SECTOR_SIZE
+#define BLOCK_SIZE SECTOR_SIZE
+//路径最大长度
+#define MAX_PATH_LEN 512
 
 //文件类型
 enum file_types {
@@ -21,6 +23,28 @@ enum file_types {
   //目录
   FT_DIRECTORY
 };
+
+//打开文件的选项
+enum oflags {
+  O_RDONLY,     //只读
+  O_WRONLY,     //只写
+  O_RDWR,       //读写
+  O_CREAT = 4   //创建
+};
+
+//用来记录查找文件过程中已找到的上级路径
+//查找文件过程中“走过的地方”
+struct path_search_record{
+  //查找过程中的父路径
+  char searched_path[MAX_PATH_LEN];
+  //文件或目录所在的直接父目录
+  struct dir* parent_dir;
+  //找到的是普通文件，还是目录，找不到将为未知类型(FT_UNKNOWN)
+  enum file_types file_type;
+};
+
+// 默认情况下操作的分区
+extern struct partition* cur_part;
 
 void filesys_init();
 #endif
