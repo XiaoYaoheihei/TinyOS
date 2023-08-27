@@ -66,4 +66,5 @@ void ide_read(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt);
 
 extern uint8_t channel_cnt;
 extern struct ide_channel channels[];
+extern struct list partition_list;
 #endif

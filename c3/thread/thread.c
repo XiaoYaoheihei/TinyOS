@@ -96,6 +96,16 @@ void init_thread(struct task_struct* pthread, char* name, int prio) {
   //线程从未执行
   pthread->elapsed_ticks = 0;
   pthread->pgdir = NULL;
+  //预留标准输入输出
+  pthread->fd_table[0] = 0;
+  pthread->fd_table[1] = 1;
+  pthread->fd_table[2] = 2;
+  //其余的全置为-1
+  uint8_t fd_idx = 3;
+  while (fd_idx < MAX_FILES_OPEN_PER_PROC) {
+    pthread->fd_table[fd_idx] = -1;
+    fd_idx++;
+  }
   //自定义的魔数
   pthread->stack_magic = 0x19870916;
 }

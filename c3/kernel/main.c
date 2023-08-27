@@ -38,9 +38,10 @@ void main() {
   // process_execute(u_prog_b, "user_b");
   // thread_start("con_thread_a", 31, k_thread_a, "A_ ");
   // thread_start("con_thread_b", 31, k_thread_b, "B_ ");
-  sys_open("/file1", O_CREAT);
-  uint32_t fd = sys_open("/file1", O_RDONLY);
+  // sys_open("/file1", O_CREAT);
+  uint32_t fd = sys_open("/file1", O_RDWR);
   printf("fd:%d\n", fd);
+  sys_write(fd, "hello,world\n", 12);
   sys_close(fd);
   printf("%d closed now\n", fd);
   while(1);

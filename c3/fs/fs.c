@@ -9,6 +9,7 @@
 #include "list.h"
 #include "string.h"
 #include "memory.h"
+#include "console.h"
 
 //默认情况下操作的是哪个分区
 struct partition* cur_part;
@@ -383,6 +384,33 @@ int32_t sys_close(int32_t fd) {
     running_thread()->fd_table[fd] = -1;
   }
   return ret;
+}
+
+//将 buf 中连续 count 个字节写入文件描述符 fd,成功则返回写入的字节数，失败返回-1
+int32_t sys_write(int32_t fd, const void* buf, uint32_t count) {
+  if (fd < 0) {
+    printk("sys_write: fd error\n");
+    return -1;
+  }
+  if (fd == stdout_no) {
+    //往屏幕上打印信息
+    char tmp_buf[1024] = {0};
+    memcpy(tmp_buf, buf, count);
+    console_put_str(tmp_buf);
+    return count;
+  }
+  //在其他情况下，sys_write 都是往文件中写数据
+  uint32_t _fd = fd_local2global(fd);
+  struct file* wr_file = &file_table[_fd];
+  //只有 flag包含 O_WRONLY 或 O_RDWR 的文件才允许写入数据
+  if (wr_file->fd_flag & O_WRONLY || wr_file->fd_flag & O_RDWR) {
+    uint32_t bytes_written = file_write(wr_file, buf, count);
+    return bytes_written;
+  } else {
+    //否则不允许写入数据，输出提示信息后返回−1
+    console_put_str("sys_write: not allowed to write file without flag O_RDWR or O_WRONLY\n");
+    return -1;
+  }
 }
 
 //在磁盘上搜索文件系统，若没有则格式化分区创建文件系统

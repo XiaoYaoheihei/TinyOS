@@ -7,6 +7,8 @@
 #include "../kernel/memory.h"
 
 #define PG_SIZE 4096
+//文件描述符数组长度
+#define MAX_FILES_OPEN_PER_PROC 8
 // 自定义的通用函数类型
 typedef void thread_func(void*);
 typedef int16_t pid_t;
@@ -86,6 +88,8 @@ struct task_struct {
   uint8_t ticks;
   //从开始执行到结束执行的总时钟数
   uint32_t elapsed_ticks;
+  //文件描述符数组,每一个任务最多可以打开8个文件
+  int32_t fd_table[MAX_FILES_OPEN_PER_PROC];
   //用于线程在就绪队列中的节点
   struct list_elem general_tag;
   //用于线程在全部队列中的节点
