@@ -2,7 +2,8 @@
 #define _FS_FILE_H
 
 #include "stdint.h"
-
+#include "ide.h"
+#include "dir.h"
 // 系统可打开的最大文件数
 #define MAX_FILE_OPEN 32
 //文件结构，文件表中的内容

@@ -1,10 +1,10 @@
 #include "inode.h"
 #include "super_block.h"
 
-#include "ide.h"
 #include "interrupt.h"
 #include "thread.h"
 #include "memory.h"
+#include "string.h"
 
 struct inode_position {
   // inode 是否跨扇区

@@ -35,7 +35,7 @@ enum oflags {
 //用来记录查找文件过程中已找到的上级路径
 //查找文件过程中“走过的地方”
 struct path_search_record{
-  //查找过程中的父路径
+  //查找处理过程中的父路径
   char searched_path[MAX_PATH_LEN];
   //文件或目录所在的直接父目录
   struct dir* parent_dir;
@@ -47,4 +47,6 @@ struct path_search_record{
 extern struct partition* cur_part;
 
 void filesys_init();
+int32_t path_depth_cnt(char* pathname);
+int32_t sys_open(const char* pathname, uint8_t flags);
 #endif
