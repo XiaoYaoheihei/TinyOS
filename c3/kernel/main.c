@@ -9,6 +9,7 @@
 #include "../userprog/syscall_init.h"
 #include "../lib/user/syscall.h"
 #include "../lib/stdio.h"
+#include "fs.h"
 
 void k_thread_a(void*);
 void k_thread_b(void*);
@@ -32,11 +33,16 @@ void main() {
   // enum intr_status old_status = intr_disable();
   //打开中断，使时钟中断起作用
   // intr_set_status(old_status);
-  intr_enable();
+  // intr_enable();
   // process_execute(u_prog_a, "user_a");
   // process_execute(u_prog_b, "user_b");
   // thread_start("con_thread_a", 31, k_thread_a, "A_ ");
   // thread_start("con_thread_b", 31, k_thread_b, "B_ ");
+  sys_open("/file1", O_CREAT);
+  uint32_t fd = sys_open("/file1", O_RDONLY);
+  printf("fd:%d\n", fd);
+  sys_close(fd);
+  printf("%d closed now\n", fd);
   while(1);
   return 0;
 }
