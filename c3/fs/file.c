@@ -64,6 +64,7 @@ int32_t block_bitmap_alloc(struct partition* part) {
   if (bit_idx == -1) {
     return -1;
   }
+  // printk("bit_idx:%d\n", bit_idx);
   bitmap_set(&part->block_bitmap, bit_idx, 1);
   // 和 inode_bitmap_malloc 不同，此处返回的不是位图索引
   // 而是具体可用的扇区地址

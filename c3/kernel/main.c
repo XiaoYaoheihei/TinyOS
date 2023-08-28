@@ -38,9 +38,30 @@ void main() {
   // process_execute(u_prog_b, "user_b");
   // thread_start("con_thread_a", 31, k_thread_a, "A_ ");
   // thread_start("con_thread_b", 31, k_thread_b, "B_ ");
-  // sys_open("/file1", O_CREAT);
-  printf("/file1 delete %s!\n", sys_unlink("/file1") == 0 ? "done" : "fail");
-  while(1);
+  
+  sys_open("/file1", O_CREAT);
+  
+  // printf("/file1 delete %s!\n", sys_unlink("/file1") == 0 ? "done" : "fail");
+  
+  //想创建目录“/dir1/subdir1”,但是我们上一个版本已经删除目录dir1
+  printf("/dir1/subdir1 create %s!\n", sys_mkdir("/dir1/subdir1") == 0 ? "done" : "fail");
+  //先创建目录“/dir1”
+  printf("/dir1 create %s!\n", sys_mkdir("/dir1") == 0 ? "done" : "fail");
+  //重新创建目录“/dir1/subdir1”
+  printf("now, /dir1/subdir1 create %s!\n", sys_mkdir("/dir1/subdir1") == 0 ? "done" : "fail");
+  //在目录“/dir1/subdir1”下创建文件“file2”
+  int fd = sys_open("/dir1/subdir1/file2", O_CREAT|O_RDWR);
+  if (fd != -1) {
+      printf("/dir1/subdir1/file2 create done!\n");
+      // 往文件“/dir1/subdir1/file2”中写数据“Catch me if you can!\n”
+      sys_write(fd, "Catch me if you can!\n", 21);
+      sys_lseek(fd, 0, SEEK_SET);
+      char buf[32] = {0};
+      sys_read(fd, buf, 21); 
+      printf("/dir1/subdir1/file2 says:\n%s", buf);
+      sys_close(fd);
+  }  
+   while(1);
   return 0;
 }
 

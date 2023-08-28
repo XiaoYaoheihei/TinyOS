@@ -105,7 +105,8 @@ char* strcat(char* dst_, const char* src_) {
   while (*str++);
   --str;//向前移动一位
   //当结尾都被赋予0的时候，while循环结束
-  while ((*str++ == *src_++));
+  // 当*str被赋值为0时,此时表达式不成立,正好添加了字符串结尾的0.
+  while ((*str++ = *src_++));
   return dst_;
 }
 
