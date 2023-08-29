@@ -10,6 +10,7 @@
 #include "../lib/user/syscall.h"
 #include "../lib/stdio.h"
 #include "fs.h"
+#include "dir.h"
 
 void k_thread_a(void*);
 void k_thread_b(void*);
@@ -38,32 +39,46 @@ void main() {
   // process_execute(u_prog_b, "user_b");
   // thread_start("con_thread_a", 31, k_thread_a, "A_ ");
   // thread_start("con_thread_b", 31, k_thread_b, "B_ ");
-  
-  sys_open("/file1", O_CREAT);
-  
-  // printf("/file1 delete %s!\n", sys_unlink("/file1") == 0 ? "done" : "fail");
-  
-  //想创建目录“/dir1/subdir1”,但是我们上一个版本已经删除目录dir1
-  printf("/dir1/subdir1 create %s!\n", sys_mkdir("/dir1/subdir1") == 0 ? "done" : "fail");
-  //先创建目录“/dir1”
-  printf("/dir1 create %s!\n", sys_mkdir("/dir1") == 0 ? "done" : "fail");
-  //重新创建目录“/dir1/subdir1”
-  printf("now, /dir1/subdir1 create %s!\n", sys_mkdir("/dir1/subdir1") == 0 ? "done" : "fail");
-  
-  //现在后面的有bug,创建目录成功但是在目录下创建文件失败了
-  //在目录“/dir1/subdir1”下创建文件“file2”
-  int fd = sys_open("/dir1/subdir1/file2", O_CREAT|O_RDWR);
-  if (fd != -1) {
-      printf("/dir1/subdir1/file2 create done!\n");
-      // 往文件“/dir1/subdir1/file2”中写数据“Catch me if you can!\n”
-      sys_write(fd, "Catch me if you can!\n", 21);
-      sys_lseek(fd, 0, SEEK_SET);
-      char buf[32] = {0};
-      sys_read(fd, buf, 21); 
-      printf("/dir1/subdir1/file2 says:\n%s", buf);
-      sys_close(fd);
-  }  
-   while(1);
+  // sys_open("/file1", O_RDONLY);
+
+  struct dir* p_dir = sys_opendir("/dir1/subdir1");
+  // if (p_dir) {
+  //   printf("/dir1/subdir1 open done!\ncontent:\n");
+  //   char* type = NULL;
+  //   struct dir_entry* dir_e = NULL;
+  //   while((dir_e = sys_readdir(p_dir))) { 
+  //     if (dir_e->f_type == FT_REGULAR) {
+  //       type = "regular";
+  //     } else {
+  //       type = "directory";
+  //     }
+  //     printf("      %s   %s\n", type, dir_e->filename);
+  //   }
+  //   if (sys_closedir(p_dir) == 0) {
+	//     printf("/dir1/subdir1 close done!\n");
+  //   } else {
+  //     printf("/dir1/subdir1 close fail!\n");
+  //   }
+  // } else {
+  //   printf("/dir1/subdir1 open fail!\n");
+  // }
+  printf("try to delete nonempty directory /dir1/subdir1\n");
+  if (sys_rmdir("/dir1/subdir1") == -1) {
+    printf("sys_rmdir: /dir1/subdir1 delete fail!\n");
+  }
+  printf("try to delete /dir1/subdir1/file2\n");
+   if (sys_rmdir("/dir1/subdir1/file2") == -1) {
+      printf("sys_rmdir: /dir1/subdir1/file2 delete fail!\n");
+   } 
+   if (sys_unlink("/dir1/subdir1/file2") == 0 ) {
+      printf("sys_unlink: /dir1/subdir1/file2 delete done\n");
+   }
+   
+   printf("try to delete directory /dir1/subdir1 again\n");
+   if (sys_rmdir("/dir1/subdir1") == 0) {
+      printf("/dir1/subdir1 delete done!\n");
+   }
+  while(1);
   return 0;
 }
 

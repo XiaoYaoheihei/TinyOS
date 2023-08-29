@@ -6,7 +6,7 @@
 #include "ide.h"
 #include "string.h"
 #include "memory.h"
-
+#include "stdio_kernel.h"
 //根目录
 struct dir root_dir;
 
@@ -340,3 +340,91 @@ bool delete_dir_entry(struct partition* part, struct dir* pdir, uint32_t inode_n
   //所有块中未找到则返回 false，出现这种情况应该是 serarch_file 出错了
   return false;
 } 
+
+//读取目录，成功返回 1 个目录项，失败返回 NULL
+struct dir_entry* dir_read(struct dir* dir) {
+  struct dir_entry* dir_e = (struct dir_entry*)dir->dir_buf;
+  struct inode* dir_inode = dir->inode;
+  uint32_t all_blocks[140] = {0}, block_cnt = 12;
+  uint32_t block_idx = 0, dir_entry_idx = 0;
+  while (block_idx < 12) {
+    all_blocks[block_idx] = dir_inode->i_sectors[block_idx];
+    block_idx++;
+  }
+  //若含有一级间接块表
+  if (dir_inode->i_sectors[12] != 0) {
+    ide_read(cur_part->my_disk, dir_inode->i_sectors[12], all_blocks+12, 1);
+    block_cnt = 140;
+  }
+  block_idx = 0;
+  
+  //当前目录项的偏移，此项用来判断是否是之前已经返回过的目录项
+  uint32_t cur_dir_entry_pos = 0;
+  uint32_t dir_entry_size = cur_part->sb->dir_entry_size;
+  // 扇区内可容纳的目录项个数
+  uint32_t dir_entrys_per_sec = SECTOR_SIZE / dir_entry_size;
+  //在目录大小内遍历
+  while (dir->dir_pos < dir_inode->i_size) {
+    if (dir->dir_pos >= dir_inode->i_size) {
+      return NULL;
+    }
+    //如果此块地址为 0，即空块，继续读出下一块
+    if (all_blocks[block_idx] == 0) {
+      block_idx++;
+      continue;
+    }
+    memset(dir_e, 0, SECTOR_SIZE);
+    ide_read(cur_part->my_disk, all_blocks[block_idx], dir_e, 1);
+    //遍历扇区内所有目录项
+    dir_entry_idx = 0;
+    while (dir_entry_idx < dir_entrys_per_sec) {
+      if ((dir_e+dir_entry_idx)->f_type) {
+        // 如果 f_type 不等于 0，即不等于 FT_UNKNOWN
+        // 判断是不是最新的目录项，避免返回曾经已经返回过的目录项
+        if (cur_dir_entry_pos < dir->dir_pos) {
+          cur_dir_entry_pos += dir_entry_size;
+          dir_entry_idx++;
+          continue;
+        }
+        ASSERT(cur_dir_entry_pos == dir->dir_pos);
+        //更新为新位置，即下一个返回的目录项地址
+        dir->dir_pos += dir_entry_size;
+        return dir_e + dir_entry_idx;
+      }
+      dir_entry_idx++;
+    }
+    block_idx++;
+  }
+  return NULL;
+}
+
+//判断目录是否为空
+bool dir_is_empty(struct dir* dir) {
+  struct inode* dir_inode = dir->inode;
+  //若目录下只有.和..这两个目录项，则目录为空
+  return (dir_inode->i_size == cur_part->sb->dir_entry_size*2);
+}
+
+//在父目录 parent_dir 中删除 child_dir
+int32_t dir_remove(struct dir* parent_dir, struct dir* child_dir) {
+  //空目录只在 inode->i_sectors[0]中有扇区，其他扇区都应该为空
+  struct inode* child_dir_inode = child_dir->inode;
+  int32_t block_idx = 1;
+  while (block_idx < 13) {
+    ASSERT(child_dir_inode->i_sectors[block_idx] == 0);
+    block_idx++;
+  }
+  void* io_buf = sys_malloc(SECTOR_SIZE*2);
+  if (io_buf == NULL) {
+    printk("dir_remove: malloc for io_buf failed\n");
+    return -1;
+  }
+
+  //在父目录 parent_dir 中删除子目录 child_dir 对应的目录项
+  delete_dir_entry(cur_part, parent_dir, child_dir_inode->i_no, io_buf);
+
+  //回收 inode 中 i_secotrs 中所占用的扇区,并同步 inode_bitmap 和 block_bitmap
+  inode_release(cur_part, child_dir_inode->i_no);
+  sys_free(io_buf);
+  return 0;
+}
