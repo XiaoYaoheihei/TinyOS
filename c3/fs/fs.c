@@ -218,14 +218,14 @@ int32_t path_depth_cnt(char* pathname) {
   uint32_t depth = 0;
   //解析路径，从中拆分出各级名称
   p = path_parse(p, name);
-  printk("name:%s ", name);
+  // printk("name:%s ", name);
   while (name[0]) {
     depth++;
     memset(name, 0, MAX_FILE_NAME_LEN);
     if (p) {
       //如果 p 不等于 NULL，继续分析路径
       p = path_parse(p, name);
-      printk("name:%s ", name);
+      // printk("name:%s ", name);
     }
   }
   return depth;
@@ -700,6 +700,7 @@ struct dir_entry* sys_readdir(struct dir* dir) {
   //   printk("one size:%d ", cur_part->sb->dir_entry_size);
   //   printk("size:%d",(dir->inode->i_size)/(cur_part->sb->dir_entry_size));
   // }
+  // printk("size:%d",(dir->inode->i_size)/(cur_part->sb->dir_entry_size));
   return dir_read(dir);
 }
 

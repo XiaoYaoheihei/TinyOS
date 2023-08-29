@@ -364,7 +364,8 @@ struct dir_entry* dir_read(struct dir* dir) {
   // 扇区内可容纳的目录项个数
   uint32_t dir_entrys_per_sec = SECTOR_SIZE / dir_entry_size;
   //在目录大小内遍历
-  while (dir->dir_pos < dir_inode->i_size) {
+  // 因为此目录内可能删除了某些文件或子目录,所以要遍历所有块
+  while (block_idx < block_cnt) {
     if (dir->dir_pos >= dir_inode->i_size) {
       return NULL;
     }
