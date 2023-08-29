@@ -85,13 +85,13 @@ char* strchar(const char* str, const uint8_t ch) {
 }
 
 //从右往左查找字符
+//脑瘫问题+1,应该找到最后一个ch，不应该找到第一个ch之后就直接break
 char* strrchar(const char* str, const uint8_t ch) {
   ASSERT(str != NULL);
   const char* last = NULL;
   while (*str != 0) {
     if (*str == ch) {
       last = str;
-      break;
     }
     str++;
   }

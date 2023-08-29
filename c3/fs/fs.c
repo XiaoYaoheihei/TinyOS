@@ -218,12 +218,14 @@ int32_t path_depth_cnt(char* pathname) {
   uint32_t depth = 0;
   //解析路径，从中拆分出各级名称
   p = path_parse(p, name);
+  printk("name:%s ", name);
   while (name[0]) {
     depth++;
     memset(name, 0, MAX_FILE_NAME_LEN);
     if (p) {
       //如果 p 不等于 NULL，继续分析路径
       p = path_parse(p, name);
+      printk("name:%s ", name);
     }
   }
   return depth;
@@ -290,7 +292,8 @@ static int search_file(const char* pathname, struct path_search_record* searched
       // 没有找到
       // 找不到目录项时，要留着 parent_dir 不要关闭
       // 若是创建新文件的话需要在 parent_dir 中创建
-      printk("not find\n");
+      // printk("search:%s\n", searched_record->searched_path);
+      // printk("name:%s\n", name);
       return -1;
     }
   }
@@ -322,6 +325,8 @@ int32_t sys_open(const char* pathname, uint8_t flags) {
   int inode_no = search_file(pathname, &searched_record);
   bool found = inode_no != -1 ? true : false;
   //如果路径的最后一层是目录，返回-1
+  // printk("path:%s, depth:%d\n", searched_record.searched_path, pathname_depth);
+  // printk("inode_no:%d\n", inode_no);
   if (searched_record.file_type == FT_DIRECTORY) {
     printk("can`t open a direcotry with open(), use opendir() to instead\n");
     dir_close(searched_record.parent_dir);
@@ -329,6 +334,7 @@ int32_t sys_open(const char* pathname, uint8_t flags) {
   }
 
   uint32_t path_searched_depth = path_depth_cnt(searched_record.searched_path);
+  // printk("path:%d\n", path_searched_depth);
   //判断是否把 pathname 的各层目录都访问到了,是否在某个中间目录就失败了
   if (pathname_depth != path_searched_depth) {
     printk("cannot access %s: Not a directory, subpath %s is’t exist\n", \

@@ -49,6 +49,8 @@ void main() {
   printf("/dir1 create %s!\n", sys_mkdir("/dir1") == 0 ? "done" : "fail");
   //重新创建目录“/dir1/subdir1”
   printf("now, /dir1/subdir1 create %s!\n", sys_mkdir("/dir1/subdir1") == 0 ? "done" : "fail");
+  
+  //现在后面的有bug,创建目录成功但是在目录下创建文件失败了
   //在目录“/dir1/subdir1”下创建文件“file2”
   int fd = sys_open("/dir1/subdir1/file2", O_CREAT|O_RDWR);
   if (fd != -1) {
