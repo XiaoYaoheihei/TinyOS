@@ -44,37 +44,15 @@ void main() {
   // printf("/dir1 create %s!\n", sys_mkdir("/dir1") == 0 ? "done" : "fail");
   // printf("now, /dir1/subdir1 create %s!\n", sys_mkdir("/dir1/subdir1") == 0 ? "done" : "fail");
   
-  //sys_rmdir("/dir1");
-  printf("now, /dir1 create %s!\n", sys_mkdir("/dir1") == 0 ? "done" : "fail");
-  char cwd_buf[32] = {0};
-   sys_getcwd(cwd_buf, 32);
-  //  struct dir_entry *dir_e = (struct dir_entry *)malloc(SECTOR_SIZE * 2);
-  //  ide_read(cur_part->my_disk, 2668, dir_e, 1);
-   printf("cwd:%s\n", cwd_buf);
-
-  //  ide_read(cur_part->my_disk, 2668, dir_e, 1);
-   if (!sys_chdir("/dir1")) {
-    printf("change cwd now\n");
-   } else {
-    printf("dir1 not exit");
-   }
-   
-  //  ide_read(cur_part->my_disk, 2668, dir_e, 1);
-   sys_getcwd(cwd_buf, 32);
-   printf("cwd:%s\n", cwd_buf);
-
-  // struct dir* dir = sys_opendir("/dir1");
-  // char* type = NULL;
-  // struct dir_entry* dir_e = NULL;
-  //  //sys_rewinddir(dir);
-  //  while((dir_e = sys_readdir(dir))) { 
-  //     if (dir_e->f_type == FT_REGULAR) {
-	//  type = "regular";
-  //     } else {
-	//  type = "directory";
-  //     }
-  //     printf("    %s   %s\n", type, dir_e->filename);
-  //  }
+  struct stat obj_stat;
+   sys_stat("/", &obj_stat);
+   printf("/`s info\n   i_no:%d\n   size:%d\n   filetype:%s\n", \
+	 obj_stat.st_ino, obj_stat.st_size, \
+	 obj_stat.st_filetype == 2 ? "directory" : "regular");
+   sys_stat("/dir1", &obj_stat);
+   printf("/dir1`s info\n   i_no:%d\n   size:%d\n   filetype:%s\n", \
+	 obj_stat.st_ino, obj_stat.st_size, \
+	 obj_stat.st_filetype == 2 ? "directory" : "regular");
 
   while(1);
   return 0;

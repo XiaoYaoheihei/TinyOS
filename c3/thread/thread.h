@@ -102,6 +102,8 @@ struct task_struct {
   struct virtual_addr ueserprog_vaddr;
   //用户进程内存块描述符
   struct mem_block_desc u_block_desc[DESC_CNT];
+  //进程所在的工作目录的 inode 编号
+  uint32_t cwd_inode_nr;
   //栈的边界标记，用于检测栈的溢出
   uint32_t stack_magic;
 };

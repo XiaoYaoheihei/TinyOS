@@ -51,6 +51,16 @@ struct path_search_record{
   enum file_types file_type;
 };
 
+//文件属性结构体
+struct stat {
+  //inode 编号
+  uint32_t st_ino;
+  //文件的字节大小
+  uint32_t st_size;
+  //文件类型
+  enum file_types st_filetype;
+};
+
 // 默认情况下操作的分区
 extern struct partition* cur_part;
 
