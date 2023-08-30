@@ -14,6 +14,7 @@ struct dir root_dir;
 void open_root_dir(struct partition* part) {
   root_dir.inode = inode_open(part, part->sb->root_inode_no);
   root_dir.dir_pos = 0;
+  printk("root inode:%d ", root_dir.inode->i_no);
 }
 
 //在分区 part 上打开 i 结点为 inode_no 的目录并返回目录指针
@@ -134,6 +135,7 @@ bool sync_dir_entry(struct dir* parent_dir, struct dir_entry* p_de, void* io_buf
     block_idx++;
   }
 
+  //dir_e用来在io_buf中遍历目录项
   struct dir_entry* dir_e = (struct dir_entry*)io_buf;
   int32_t block_bitmap_idx = -1;
   //开始遍历所有块以寻找目录项空位，若已有扇区中没有空闲位，
@@ -376,6 +378,8 @@ struct dir_entry* dir_read(struct dir* dir) {
     }
     memset(dir_e, 0, SECTOR_SIZE);
     ide_read(cur_part->my_disk, all_blocks[block_idx], dir_e, 1);
+    // printk("111%d\n", all_blocks[block_idx]);
+    
     //遍历扇区内所有目录项
     dir_entry_idx = 0;
     while (dir_entry_idx < dir_entrys_per_sec) {

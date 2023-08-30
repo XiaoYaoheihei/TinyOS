@@ -44,58 +44,36 @@ void main() {
   // printf("/dir1 create %s!\n", sys_mkdir("/dir1") == 0 ? "done" : "fail");
   // printf("now, /dir1/subdir1 create %s!\n", sys_mkdir("/dir1/subdir1") == 0 ? "done" : "fail");
   
-  // int fd = sys_open("/dir1/subdir1/file2", O_CREAT|O_RDWR);
-  struct dir* p_dir = sys_opendir("/dir1/subdir1");
-  char* type = NULL;
-   struct dir_entry* dir_e = NULL;
-  if (p_dir) {
-    printf("/dir1/subdir1 open done!\ncontent:\n");
-    char* type = NULL;
-    struct dir_entry* dir_e = NULL;
-    while((dir_e = sys_readdir(p_dir))) { 
-      if (dir_e->f_type == FT_REGULAR) {
-        type = "regular";
-      } else {
-        type = "directory";
-      }
-      printf("      %s   %s\n", type, dir_e->filename);
-    }
-    if (sys_closedir(p_dir) == 0) {
-	    printf("/dir1/subdir1 close done!\n");
-    } else {
-      printf("/dir1/subdir1 close fail!\n");
-    }
-  } else {
-    printf("/dir1/subdir1 open fail!\n");
-  }
+  //sys_rmdir("/dir1");
+  printf("now, /dir1 create %s!\n", sys_mkdir("/dir1") == 0 ? "done" : "fail");
+  char cwd_buf[32] = {0};
+   sys_getcwd(cwd_buf, 32);
+  //  struct dir_entry *dir_e = (struct dir_entry *)malloc(SECTOR_SIZE * 2);
+  //  ide_read(cur_part->my_disk, 2668, dir_e, 1);
+   printf("cwd:%s\n", cwd_buf);
 
-  // printf("try to delete nonempty directory /dir1/subdir1\n");
-  //  if (sys_rmdir("/dir1/subdir1") == -1) {
-  //     printf("sys_rmdir: /dir1/subdir1 delete fail!\n");
-  //  }
-
-  //  printf("try to delete /dir1/subdir1/file2\n");
-  //  if (sys_rmdir("/dir1/subdir1/file2") == -1) {
-  //     printf("sys_rmdir: /dir1/subdir1/file2 delete fail!\n");
-  //  } 
-  //  if (sys_unlink("/dir1/subdir1/file2") == 0 ) {
-  //     printf("sys_unlink: /dir1/subdir1/file2 delete done\n");
-  //  }
+  //  ide_read(cur_part->my_disk, 2668, dir_e, 1);
+   if (!sys_chdir("/dir1")) {
+    printf("change cwd now\n");
+   } else {
+    printf("dir1 not exit");
+   }
    
-  //  printf("try to delete directory /dir1/subdir1 again\n");
-  //  if (sys_rmdir("/dir1/subdir1") == 0) {
-  //     printf("/dir1/subdir1 delete done!\n");
-  //  }
+  //  ide_read(cur_part->my_disk, 2668, dir_e, 1);
+   sys_getcwd(cwd_buf, 32);
+   printf("cwd:%s\n", cwd_buf);
 
-  //  printf("/dir1 content after delete /dir1/subdir1:\n");
-  //  sys_rewinddir(p_dir);
-  //  while((dir_e = sys_readdir(p_dir))) { 
+  // struct dir* dir = sys_opendir("/dir1");
+  // char* type = NULL;
+  // struct dir_entry* dir_e = NULL;
+  //  //sys_rewinddir(dir);
+  //  while((dir_e = sys_readdir(dir))) { 
   //     if (dir_e->f_type == FT_REGULAR) {
 	//  type = "regular";
   //     } else {
 	//  type = "directory";
   //     }
-  //     printf("      %s   %s\n", type, dir_e->filename);
+  //     printf("    %s   %s\n", type, dir_e->filename);
   //  }
 
   while(1);

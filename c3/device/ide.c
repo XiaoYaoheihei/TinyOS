@@ -168,7 +168,7 @@ void ide_read(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt) {
   //已完成的扇区数
   uint32_t secs_done = 0;
   
-  while (secs_done < secs_op) {
+  while (secs_done < sec_cnt) {
     //当读写的扇区数超过256的时候就必须拆分成多次读写操作
     if ((secs_done + 256) <= sec_cnt) {
       secs_op = 256;
