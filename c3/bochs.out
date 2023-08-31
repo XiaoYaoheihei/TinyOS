@@ -30,7 +30,7 @@
 00000000000i[     ]   SB16 support: no
 00000000000i[     ]   USB support: no
 00000000000i[     ]   VGA extension support: vbe
-00000000000i[MEM0 ] allocated memory at 0x7f287e1dd010. after alignment, vector=0x7f287e1de000
+00000000000i[MEM0 ] allocated memory at 0x7f70331dd010. after alignment, vector=0x7f70331de000
 00000000000i[MEM0 ] 32.00MB
 00000000000i[MEM0 ] mem block size = 0x00100000, blocks=32
 00000000000i[MEM0 ] rom at 0xfffe0000/131072 ('/home/xiaoyao/desktop/bochs/share/bochs/BIOS-bochs-latest')
@@ -40,7 +40,7 @@
 00000000000i[DEV  ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[     ] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS ] Using local time for initial clock
-00000000000i[CMOS ] Setting initial clock to: Fri Aug 25 21:11:20 2023 (time0=1692969080)
+00000000000i[CMOS ] Setting initial clock to: Thu Aug 31 17:51:57 2023 (time0=1693475517)
 00000000000i[     ] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA  ] channel 4 used by cascade
 00000000000i[     ] init_dev of 'pic' plugin device by virtual method
@@ -219,5 +219,6 @@
 00001925626i[BIOS ] ata0-1: PCHS=162/16/63 translation=none LCHS=162/16/63
 00014089413i[BIOS ] Booting from 0000:7c00
 00014303488i[MEM0 ] allocate_block: block=0x1 used 0x3 of 0x20
-00014410470i[MEM0 ] allocate_block: block=0x2 used 0x4 of 0x20
-00424000003p[     ] >>PANIC<< SIGNAL 2 caught
+00014432385i[MEM0 ] allocate_block: block=0x2 used 0x4 of 0x20
+00016609329i[MEM0 ] allocate_block: block=0x11 used 0x5 of 0x20
+00192000000p[     ] >>PANIC<< SIGNAL 2 caught

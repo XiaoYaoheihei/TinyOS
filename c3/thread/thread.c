@@ -24,6 +24,7 @@ struct lock pid_lock;
 static struct list_elem* thread_tag;
 
 extern void switch_to(struct task_struct* cur, struct task_struct* next);
+extern void init(void);
 
 //系统空闲时运行的线程
 static void idle(void* arg UNUSED) {
@@ -77,6 +78,12 @@ static pid_t allocate_pid() {
   return next_pid;
 }
 
+//fork进程时为其分配pid,因为allocate_pid已经是静态的,别的文件无法调用
+//不想改变函数定义了,故定义fork_pid函数来封装一下
+pid_t fork_pid() {
+  return allocate_pid();
+}
+
 //初始化线程对应的PCB基本信息
 void init_thread(struct task_struct* pthread, char* name, int prio) {
   memset(pthread, 0, sizeof(*pthread));
@@ -108,6 +115,8 @@ void init_thread(struct task_struct* pthread, char* name, int prio) {
   }
   //以根目录作为默认工作路径
   pthread->cwd_inode_nr = 0;
+  // -1表示没有父进程
+  pthread->parent_pid = -1;
   //自定义的魔数
   pthread->stack_magic = 0x19870916;
 }
@@ -145,7 +154,7 @@ struct task_struct* thread_start(char* name,
 //在主线程的PCB中写入线程信息
 static void make_main_thread() {
   main_thread = running_thread();
-  init_thread(main_thread, "main", 1);
+  init_thread(main_thread, "main", 31);
 
   //main函数是当前线程，当前线程现在肯定不在thread_ready_list中
   //将其只添加到thread_all_list中
@@ -209,6 +218,10 @@ void thread_init() {
   list_init(&thread_ready_list);
   list_init(&thread_all_list);
   lock_init(&pid_lock);
+
+  //先创建第一个用户进程:init 
+  //放在第一个初始化,这是第一个进程,init进程的pid为1
+  process_execute(init, "init");
   //将当前main函数创建为线程
   make_main_thread();
   //创建idle线程

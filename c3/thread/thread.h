@@ -104,6 +104,8 @@ struct task_struct {
   struct mem_block_desc u_block_desc[DESC_CNT];
   //进程所在的工作目录的 inode 编号
   uint32_t cwd_inode_nr;
+  //父进程pid
+  int32_t parent_pid;
   //栈的边界标记，用于检测栈的溢出
   uint32_t stack_magic;
 };
@@ -122,4 +124,5 @@ void thread_block(enum task_status);
 void thread_unblock(struct task_struct*);
 
 void thread_yield(void);
+pid_t fork_pid();
 #endif
