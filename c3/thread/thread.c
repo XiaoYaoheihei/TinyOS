@@ -285,7 +285,7 @@ static bool elem2thread_info(struct list_elem* pelem, int arg UNUSED) {
 
 //打印任务列表
 void sys_ps() {
-  char* ps_title = "PID       PPID      STAT      TICKS     COMMAND\n";
+   char* ps_title = "PID            PPID           STAT           TICKS          COMMAND\n";
   sys_write(stdout_no, ps_title, strlen(ps_title));
   list_traversal(&thread_all_list, elem2thread_info, 0);
 }
