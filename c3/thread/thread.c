@@ -8,6 +8,9 @@
 #include "../lib/kernel/list.h"
 #include "../userprog/process.h"
 #include "sync.h"
+#include "file.h"
+#include "fs.h"
+#include "stdio.h"
 
 //定义主线程的PCB
 //进入内核之后一直运行的是main函数，其实他就是一个线程
@@ -210,6 +213,81 @@ void thread_yield() {
   cur->status = TASK_READY;
   schedule();
   intr_set_status(old_status);
+}
+
+
+//以填充空格的方式对齐输出 buf
+static void pad_print(char* buf, int32_t buf_len, void* ptr, char format) {
+  memset(buf, 0, buf_len);
+  uint8_t out_pad_0idx = 0;
+  switch(format) {
+    case 's'://处理字符串
+      out_pad_0idx = sprintf(buf, "%s", ptr);
+      break;
+    case 'd'://处理 16 位整数
+      out_pad_0idx = sprintf(buf, "%d", *((int16_t*)ptr));
+    case 'x'://处理 32 位整数
+      out_pad_0idx = sprintf(buf, "%x", *((uint32_t*)ptr));
+  }
+  //ptr长度不足buf_len，就以空格来填充
+  while (out_pad_0idx < buf_len) {
+    //以空格填充
+    buf[out_pad_0idx] = ' ';
+    out_pad_0idx++;
+  }
+  sys_write(stdout_no, buf, buf_len-1);
+}
+
+//用于在 list_traversal 函数中的回调函数，用于针对线程队列的处理
+//打印相关信息
+static bool elem2thread_info(struct list_elem* pelem, int arg UNUSED) {
+  struct task_struct* pthread = elem2entry(struct task_struct, all_list_tag, pelem);
+  char out_pad[16] = {0};
+  //打印pid和ppid
+  pad_print(out_pad, 16, &pthread->pid, pelem);
+  if (pthread->pid == -1) {
+    pad_print(out_pad, 16, "NULL", 's');
+  } else {
+    pad_print(out_pad, 16, &pthread->parent_pid, 'd');
+  }
+  //根据任务的status输出不同的任务状态
+  switch (pthread->status) {
+  case 0:
+    pad_print(out_pad, 16, "RUNNING", 's');
+    break;
+  case 1:
+    pad_print(out_pad, 16, "READY", 's');
+    break;
+  case 2:
+    pad_print(out_pad, 16, "BLOCKED", 's');
+    break;
+  case 3:
+    pad_print(out_pad, 16, "WAITING", 's');
+    break;
+  case 4:
+    pad_print(out_pad, 16, "HANGING", 's');
+    break;
+  case 5:
+    pad_print(out_pad, 16, "DIED", 's');
+  }
+  //输出总共执行的时钟数
+  pad_print(out_pad, 16, &pthread->elapsed_ticks, 'x');
+
+  memset(out_pad, 0, 16);
+  ASSERT(strlen(pthread->name) < 17);
+  memcpy(out_pad, pthread->name, strlen(pthread->name));
+  strcat(out_pad, "\n");
+  sys_write(stdout_no, out_pad, strlen(out_pad));
+  //此处返回 false 是为了迎合主调函数 list_traversal
+  //只有回调函数返回 false 时才会继续调用此函数
+  return false;
+}
+
+//打印任务列表
+void sys_ps() {
+  char* ps_title = "PID       PPID      STAT      TICKS     COMMAND\n";
+  sys_write(stdout_no, ps_title, strlen(ps_title));
+  list_traversal(&thread_all_list, elem2thread_info, 0);
 }
 
 //c初始化线程环境

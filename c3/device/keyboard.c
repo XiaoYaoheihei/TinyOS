@@ -197,9 +197,18 @@ static void intr_keyboard_handler() {
     //只处理ASCII码不为0的键
     //可显示字符或者格式控制字符
     if (cur_char) {
+       /*****************  快捷键ctrl+l和ctrl+u的处理 *********************
+      * 下面是把ctrl+l和ctrl+u这两种组合键产生的字符置为:
+      * cur_char的asc码-字符a的asc码, 此差值比较小,
+      * 属于asc码表中不可见的字符部分.故不会产生可见字符.
+      * 我们在shell中将ascii值为l-a和u-a的分别处理为清屏和删除输入的快捷键*/
+      if ((ctrl_down_last && cur_char == 'l') || (ctrl_down_last && cur_char == 'u')) {
+        cur_char -= 'a';
+      }
+
       //如果此时的键盘缓冲区中未满
       if (!ioq_full(&kbd_buf)) {
-        put_char(cur_char);
+        // put_char(cur_char);
         //临时操作，为了显示问题
         ioq_putchar(&kbd_buf, cur_char);
       }

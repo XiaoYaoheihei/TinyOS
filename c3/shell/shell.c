@@ -46,6 +46,26 @@ static void readline(char* buf, int32_t count) {
         putchar('\b');
       }
       break;
+
+    //ctrl+l 清屏
+    case 'l'-'a':
+      //1.先将当前的字符'l'-'a'置为 0
+      *pos = 0;
+      //2.再将屏幕清空
+      clear();
+      //3.打印提示符
+      print_promt();
+      //4.将之前键入的内容再次打印
+      printf("%s", buf);
+      break;
+
+    //ctrl+u 清掉输入
+    case 'u'-'a':
+      while (buf != pos) {
+        putchar('\b');
+        *(pos--) = 0;
+      }
+      break;
     //非控制键则输出字符
     default:
       putchar(*pos);
@@ -54,6 +74,53 @@ static void readline(char* buf, int32_t count) {
   }
   printf("readline: can't find enter_key in the cmdline, max num of char is 128\n");
 }
+
+//分析字符串 cmd_str 中以 token 为分隔符的单词,将各单词的指针存入 argv 数组
+static int32_t cmd_parse(char* cmd_str, char** argv, char token) {
+  ASSERT(cmd_str != NULL);
+  int32_t arg_idx = 0;
+  while (arg_idx < MAX_ARG_NR) {
+    argv[arg_idx] = NULL;
+    arg_idx++;
+  }
+
+  char* next = cmd_str;
+  int32_t argc = 0;
+  //外层循环处理整个命令行
+  while(*next) {
+    //去除命令字或参数之间的空格
+    while (*next == token) {
+      next++;
+    }
+    //处理最后一个参数后接空格的情况，如"ls dir2 "
+    if (*next == 0) {
+      break;
+    }
+    argv[argc] = next;
+    //内层循环处理命令行中的每个命令字及参数
+    while (*next && *next != token) {
+      //在字符串结束前找单词分隔符
+      next++;
+    }
+    //如果未结束（是 token 字符），使 tocken 变成 0
+    if (*next) {
+      //将 token 字符替换为字符串结束符 0
+      //作为一个单词的结束，并将字符指针 next 指向下一个字符
+      *next++ = 0;
+    }
+    //避免 argv 数组访问越界，参数过多则返回 0
+    if (argc > MAX_ARG_NR) {
+      return -1;
+    }
+    argc++;
+  }
+  return argc;
+}
+
+
+//argv 必须为全局变量，为了以后 exec 的程序可访问参数
+char* argv[MAX_ARG_NR];
+int32_t argc = -1;
 
 //简单的 shell
 void my_shell() {
@@ -66,6 +133,19 @@ void my_shell() {
       //若只键入了一个回车
       continue;
     }
+    argc = -1;
+    argc = cmd_parse(cmd_line, argv, ' ');
+    if (argc == -1) {
+      printf("num of arguments exceed %d\n", MAX_ARG_NR);
+      continue;
+    }
+
+    int32_t arg_idx = 0;
+    while (arg_idx < argc) {
+      printf("%s ", argv[arg_idx]);
+      arg_idx++;
+    }
+    printf("\n");
   }
   //出现了bug
   panic("my_shell: should not be here");

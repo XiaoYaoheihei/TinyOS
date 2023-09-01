@@ -125,4 +125,5 @@ void thread_unblock(struct task_struct*);
 
 void thread_yield(void);
 pid_t fork_pid();
+void sys_ps();
 #endif

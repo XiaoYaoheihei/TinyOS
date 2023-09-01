@@ -20,6 +20,8 @@ int main(void) {
    put_str("I am kernel\n");
    init_all();
    cls_screen();
+   // sys_mkdir("/dir2");
+   // dir_close("/dir2");
    console_put_str("[rabbit@localhost /]$ ");
    while(1);
    return 0;
