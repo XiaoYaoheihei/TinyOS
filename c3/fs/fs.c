@@ -194,7 +194,7 @@ static bool mount_partition(struct list_elem* pelem, int arg) {
 //将最上层路径名称解析出来
 //要是解析路径“/a/b/c”的话，调用 path_parse 时，name_store 的值是“a”
 //然后返回子路径字符串“/b/c”的地址
-static char* path_parse(char* pathname, char* name_store) {
+char* path_parse(char* pathname, char* name_store) {
   //根目录不需要单独解析
   if (pathname[0] == '/') {
     //路径中出现 1 个或多个连续的字符'/'，将这些'/'跳过，如"///a/b"

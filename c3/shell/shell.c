@@ -1,4 +1,5 @@
 #include "shell.h"
+#include "buildin_cmd.h"
 #include "stdint.h"
 #include "global.h"
 #include "fs.h"
@@ -15,6 +16,8 @@
 
 //存储输入的命令
 static char cmd_line[cmd_len] = {0};
+// 用于洗路径时的缓冲
+char final_path[MAX_PATH_LEN] = {0};      
 
 //用来记录当前目录，是当前目录的缓存,每次执行 cd 命令时会更新此内容
 char cwd_cache[64] = {0};
@@ -125,10 +128,12 @@ int32_t argc = -1;
 //简单的 shell
 void my_shell() {
   cwd_cache[0] = '/';
+  cwd_cache[1] = 0;
   while(1) {
     print_promt();
-    memset(cmd_line, 0, cmd_len);
-    readline(cmd_line, cmd_len);
+    memset(final_path, 0, MAX_PATH_LEN);
+    memset(cmd_line, 0, MAX_PATH_LEN);
+    readline(cmd_line, MAX_PATH_LEN);
     if (cmd_line[0] == 0) {
       //若只键入了一个回车
       continue;
@@ -140,13 +145,14 @@ void my_shell() {
       continue;
     }
 
+    char buf[MAX_PATH_LEN] = {0};
     int32_t arg_idx = 0;
     while (arg_idx < argc) {
-      printf("%s ", argv[arg_idx]);
+      make_clear_abs_path(argv[arg_idx], buf);
+      printf("%s -> %s\n", argv[arg_idx], buf);
       arg_idx++;
     }
-    printf("\n");
   }
   //出现了bug
-  panic("my_shell: should not be here");
+  PANIC("my_shell: should not be here");
 }
