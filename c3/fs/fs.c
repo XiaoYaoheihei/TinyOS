@@ -623,9 +623,9 @@ int32_t sys_mkdir(const char* pathname) {
   p_de->i_no = parent_dir->inode->i_no;
   p_de->f_type = FT_DIRECTORY;
   ide_write(cur_part->my_disk, new_dir_inode.i_sectors[0], io_buf, 1);
-  memset(io_buf, 0 , SECTOR_SIZE * 2);
-  ide_read(cur_part->my_disk, new_dir_inode.i_sectors[0], io_buf, 1);
-  p_de = (struct dir_entry *)io_buf;
+  // memset(io_buf, 0 , SECTOR_SIZE * 2);
+  // ide_read(cur_part->my_disk, new_dir_inode.i_sectors[0], io_buf, 1);
+  // p_de = (struct dir_entry *)io_buf;
 
   new_dir_inode.i_size = 2*cur_part->sb->dir_entry_size;
 

@@ -55,6 +55,7 @@ int32_t inode_bitmap_alloc(struct partition* part) {
     return -1;
   }
   bitmap_set(&part->inode_bitmap, bit_idx, 1);
+  printk("now:%d ", bit_idx);
   return bit_idx;
 }
 

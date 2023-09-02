@@ -211,7 +211,7 @@ void buildin_ls(uint32_t argc, char** argv) {
       }
       printf("\n");
     }
-    close(dir);
+    closedir(dir);
   } else {
     if (long_info) {
       printf("- %d %d %s\n",file_stat.st_ino,file_stat.st_size,pathname);
