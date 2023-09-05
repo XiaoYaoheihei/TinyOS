@@ -1,5 +1,6 @@
 #include "shell.h"
 #include "buildin_cmd.h"
+#include "exec.h"
 #include "stdint.h"
 #include "global.h"
 #include "fs.h"
@@ -126,7 +127,7 @@ char* argv[MAX_ARG_NR];
 int32_t argc = -1;
 
 //简单的 shell
-void my_shell() {
+void  my_shell() {
   cwd_cache[0] = '/';
   while(1) {
     print_promt();
@@ -164,16 +165,35 @@ void my_shell() {
     } else if (!strcmp("rm", argv[0])) {
       buildin_rm(argc, argv);
     } else {
-      printf("external command\n");
+      //如果是外部命令，需要从磁盘上加载
+      int32_t pid = fork();
+      if (pid) {
+        // 父进程
+        //下面这个 while 必须要加上，否则父进程一般情况下会比子进程先执行，
+        //因此会进行下一轮循环将 findl_path 清空,这样子进程将无法从 final_path 中获得参数
+        while(1);
+      } else {
+        //子进程
+        //获取可执行文件argv[0]的绝对路径
+        make_clear_abs_path(argv[0], final_path);
+        argv[0] = final_path;
+        //先判断文件是否存在 
+        struct stat file_stat;
+        memset(&file_stat, 0, sizeof(struct stat));
+        if (stat(argv[0], &file_stat) == -1) {
+          printf("my_shell: cannot access %s:No such file or directory\n", argv[0]);
+        } else {
+          execv(argv[0], argv);
+        }
+        while(1);
+      }
     }
 
-    // char buf[MAX_PATH_LEN] = {0};
-    // int32_t arg_idx = 0;
-    // while (arg_idx < argc) {
-    //   make_clear_abs_path(argv[arg_idx], buf);
-    //   printf("%s -> %s\n", argv[arg_idx], buf);
-    //   arg_idx++;
-    // }
+    int32_t arg_idx = 0;
+    while (arg_idx < MAX_ARG_NR) {
+      argv[arg_idx] = NULL;
+      arg_idx++;
+    }
   }
   //出现了bug
   PANIC("my_shell: should not be here");

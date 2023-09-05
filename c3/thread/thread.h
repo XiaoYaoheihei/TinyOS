@@ -6,6 +6,7 @@
 #include "../lib/kernel/bitmap.h"
 #include "../kernel/memory.h"
 
+#define TASK_NAME_LEN 16
 #define PG_SIZE 4096
 //文件描述符数组长度
 #define MAX_FILES_OPEN_PER_PROC 8
