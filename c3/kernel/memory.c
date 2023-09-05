@@ -220,12 +220,15 @@ void* get_a_page(enum pool_flags pf, uint32_t vaddr) {
   if (cur->pgdir != NULL && pf == PF_USER) {
     //当前用户进程申请内存，修改用户进程自己的虚拟地址位图
     bit_idx = (vaddr - cur->ueserprog_vaddr.virtual_addr_start)/PG_SIZE;
-    ASSERT(bit_idx > 0);
+    //bit_idx的地址是可以和位图的地址重合的，下面之前写的是>0意思是不允许分配，但是其实是可以分配的
+    //虚拟地址和位图的地址重合的话应该是可以分配的
+    ASSERT(bit_idx >= 0);
     bitmap_set(&cur->ueserprog_vaddr.virtual_addr_bitmap, bit_idx, 1);
   } else if (cur->pgdir == NULL && pf == PF_KERNEL) {
     // 如果是内核线程申请内核内存，就修改 kernel_vaddr
     bit_idx = (vaddr - kernel_vaddr.virtual_addr_start)/PG_SIZE;
-    ASSERT(bit_idx > 0);
+    //和前面的是一样的道理
+    ASSERT(bit_idx >= 0);
     bitmap_set(&kernel_vaddr.virtual_addr_bitmap, bit_idx, 1);
   } else {
     PANIC("get_a_page:not allow kernel alloc userspace or \

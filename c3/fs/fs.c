@@ -416,6 +416,9 @@ int32_t sys_write(int32_t fd, const void* buf, uint32_t count) {
   //只有 flag包含 O_WRONLY 或 O_RDWR 的文件才允许写入数据
   if (wr_file->fd_flag & O_WRONLY || wr_file->fd_flag & O_RDWR) {
     uint32_t bytes_written = file_write(wr_file, buf, count);
+    //可以在这里添加调试信息看是否写入了相当的字节
+    //其实有一个小小的疑问，将外部可执行文件的代码段写入的时候，返回的字节数是完全写入的数量
+    //但是在file_write种打印写入的扇区数不够，扇区数量比应该的要少一点，这不会影响下一步进行
     return bytes_written;
   } else {
     //否则不允许写入数据，输出提示信息后返回−1
@@ -847,6 +850,11 @@ char* sys_getcwd(char* buf, uint32_t size) {
   if (child_inode_nr == 0) {
     buf[0] = '/';
     buf[1] = 0;
+    //返回之前忘记释放内存会造成内存泄漏，间接会导致下一次malloc出现问题
+    //返回之前一定要记得释放堆区内存，如果忘记释放了要有工具可以查看
+    //内存未释放带来的痛苦是真的很大，因为这次没有释放我们只有在下一次malloc的时候才可以检测到问题
+    //像c和c++这种语言对于控制内存释放真的需要十分谨慎！！！！
+    sys_free(io_buf);
     return buf;
   }
   memset(buf, 0, size);

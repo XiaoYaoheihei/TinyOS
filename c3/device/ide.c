@@ -157,6 +157,8 @@ static bool busy_wait(struct disk* hd) {
 
 //从硬盘读取 sec_cnt 个扇区到 buf
 void ide_read(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt) {
+  // 调试代码
+  // printk("ideread:%d %d\n", lba, max_lba);
   ASSERT (lba <= max_lba);
   ASSERT (sec_cnt > 0);
   lock_acquire(&hd->my_channel->lock);

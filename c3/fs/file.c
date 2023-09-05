@@ -225,7 +225,7 @@ int32_t file_close(struct file* file) {
   return 0;
 }
 
-//把 buf 中的 count 个字节写入 file,成功则返回写入的字节数，失败则返回-1
+//把 buf 中的 count 个字节写入 file结构体,成功则返回写入的字节数，失败则返回-1
 int32_t file_write(struct file* file, const void* buf, uint32_t count) {
   if ((file->fd_inode->i_size+count) > (BLOCK_SIZE*140)) {
     // 文件目前最大只支持 512*140=71680 字节
@@ -234,12 +234,14 @@ int32_t file_write(struct file* file, const void* buf, uint32_t count) {
   }
   uint8_t* io_buf = sys_malloc(512);
   if (io_buf == NULL) {
-
+    printk("file_write: sys_malloc for io_buf failed\n");
+    return -1;
   }
   //用来记录文件所有的块地址
   uint32_t* all_blocks = (uint32_t*)sys_malloc(BLOCK_SIZE+48);
   if (all_blocks == NULL) {
-
+    printk("file_write: sys_malloc for all_blocks failed\n");
+    return -1;
   }
 
   //用 src 指向 buf 中待写入的数据
@@ -425,7 +427,7 @@ int32_t file_write(struct file* file, const void* buf, uint32_t count) {
     memcpy(io_buf + sec_off_bytes, src, chunk_size);
     ide_write(cur_part->my_disk, sec_lba, io_buf, 1);
     // 调试，完成后去掉
-    printk("file write at lba 0x%x\n", sec_lba);
+    // printk("0x%x   ", sec_lba);
     // 将指针推移到下个新数据
     src += chunk_size;
     // 更新文件大小
@@ -441,7 +443,7 @@ int32_t file_write(struct file* file, const void* buf, uint32_t count) {
 }
 
 
-//从文件 file 中读取 count 个字节写入 buf,返回读出的字节数，若到文件尾则返回-1
+//从文件结构体file 中读取 count 个字节写入 buf,返回读出的字节数，若到文件尾则返回-1
 int32_t file_read(struct file* file, void* buf, uint32_t count) {
   //目标地址
   uint8_t* buf_dst = (uint8_t*)buf;
@@ -470,6 +472,8 @@ int32_t file_read(struct file* file, void* buf, uint32_t count) {
     printk("file_read: sys_malloc for all_blocks failed\n");
     return -1;
   }
+  memset(all_blocks, 0, (BLOCK_SIZE + 48));
+  
   //数据所在块的起始地址
   uint32_t block_read_start_idx = file->fd_pos/BLOCK_SIZE;
   //数据所在块的终止地址
