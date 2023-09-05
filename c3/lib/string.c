@@ -1,10 +1,10 @@
 #include "string.h"
-#include "../kernel/debug.h"
+#include "user/assert.h"
 #include "../kernel/global.h"
 
 //将从dst开始的size个字节置为value
 void memset(void* dst_, uint8_t value, uint32_t size) {
-  ASSERT(dst_ != NULL);
+  assert(dst_ != NULL);
   uint8_t* dst = (uint8_t*)dst_;
   while (size-- > 0) {
     *dst++ = value;
@@ -13,7 +13,7 @@ void memset(void* dst_, uint8_t value, uint32_t size) {
 
 //将从src开始的size个字节复制到dst处
 void memcpy(void* dst_, const void* src_, uint32_t size) {
-  ASSERT(dst_ != NULL && src_ != NULL);
+  assert(dst_ != NULL && src_ != NULL);
   uint8_t* dst = (uint8_t*)dst_;
   const uint8_t* src = (uint8_t*)src_;
   while (size-- > 0){
@@ -26,7 +26,7 @@ void memcpy(void* dst_, const void* src_, uint32_t size) {
 int memcmp(const void* a_, const void* b_, uint32_t size) {
   const char* a = a_;
   const char* b = b_;
-  ASSERT(a != NULL || b != NULL);
+  assert(a != NULL || b != NULL);
   while (size-- > 0) {
     if (*a != *b) {
       return *a > *b ? 1 :-1;
@@ -39,7 +39,7 @@ int memcmp(const void* a_, const void* b_, uint32_t size) {
 
 //字符串复制
 char* strcpy(char* dst_,const char* src_) {
-  ASSERT(dst_ != NULL && src_ != NULL);
+  assert(dst_ != NULL && src_ != NULL);
   char* r = dst_;   //返回目的字符串地址
   //脑瘫了，写了一个*src != *dst的判读条件
   //这样肯定会造成缺页异常啊！！！！
@@ -53,7 +53,7 @@ char* strcpy(char* dst_,const char* src_) {
 
 //字符串长度
 uint32_t strlen(const char* str) {
-  ASSERT(str != NULL);
+  assert(str != NULL);
   const char* p = str;
   while (*p++);
   return (p-str-1);
@@ -61,7 +61,7 @@ uint32_t strlen(const char* str) {
 
 //字符串比较
 int8_t strcmp(const char* a, const char* b) {
-  ASSERT(a != NULL && b!= NULL);
+  assert(a != NULL && b!= NULL);
   while (*a != 0 && *a == *b) {
     a++;
     b++;
@@ -74,7 +74,7 @@ int8_t strcmp(const char* a, const char* b) {
 
 //从左往右查找字符
 char* strchar(const char* str, const uint8_t ch) {
-  ASSERT(str != NULL);
+  assert(str != NULL);
   while (*str != 0) {
     if (*str == ch) {
       return (char*)str;  //强制类型转化成和返回类型一致
@@ -87,7 +87,7 @@ char* strchar(const char* str, const uint8_t ch) {
 //从右往左查找字符
 //脑瘫问题+1,应该找到最后一个ch，不应该找到第一个ch之后就直接break
 char* strrchar(const char* str, const uint8_t ch) {
-  ASSERT(str != NULL);
+  assert(str != NULL);
   const char* last = NULL;
   while (*str != 0) {
     if (*str == ch) {
@@ -100,7 +100,7 @@ char* strrchar(const char* str, const uint8_t ch) {
 
 //拼接字符串
 char* strcat(char* dst_, const char* src_) {
-  ASSERT(dst_ != NULL && src_ != NULL);
+  assert(dst_ != NULL && src_ != NULL);
   char* str = dst_;
   while (*str++);
   --str;//向前移动一位
@@ -112,7 +112,7 @@ char* strcat(char* dst_, const char* src_) {
 
 //字符串中字符出现的次数
 uint32_t strchars(const char* str, uint8_t ch) {
-  ASSERT(str != NULL);
+  assert(str != NULL);
   uint32_t ch_cnt = 0;
   const char* p = str;
   while (*p != 0) {
