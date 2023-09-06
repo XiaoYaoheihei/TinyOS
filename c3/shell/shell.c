@@ -7,7 +7,7 @@
 #include "file.h"
 #include "syscall.h"
 #include "stdio.h"
-#include "debug.h"
+#include "assert.h"
 #include "string.h"
 
 //最大支持键入 128 个字符的命令行输入
@@ -164,6 +164,9 @@ void  my_shell() {
       buildin_rmdir(argc, argv);
     } else if (!strcmp("rm", argv[0])) {
       buildin_rm(argc, argv);
+    } else if (!strcmp("exit", argv[0])) {
+      //可以增加一个主动退出的函数
+      
     } else {
       //如果是外部命令，需要从磁盘上加载
       int32_t pid = fork();
@@ -171,7 +174,13 @@ void  my_shell() {
         // 父进程
         //下面这个 while 必须要加上，否则父进程一般情况下会比子进程先执行，
         //因此会进行下一轮循环将 findl_path 清空,这样子进程将无法从 final_path 中获得参数
-        while(1);
+        int32_t status;
+        int32_t child_pid = wait(&status);
+        //此时子进程若没有执行 exit,my_shell 会被阻塞，不再响应键入的命令
+        if (child_pid == -1) {
+          panic("my_shell: no child\n");
+        }
+        printf("child_pid %d, it's status: %d\n", child_pid, status);
       } else {
         //子进程
         //获取可执行文件argv[0]的绝对路径
@@ -182,10 +191,10 @@ void  my_shell() {
         memset(&file_stat, 0, sizeof(struct stat));
         if (stat(argv[0], &file_stat) == -1) {
           printf("my_shell: cannot access %s:No such file or directory\n", argv[0]);
+          exit(-1);
         } else {
           execv(argv[0], argv);
         }
-        while(1);
       }
     }
 
@@ -196,5 +205,5 @@ void  my_shell() {
     }
   }
   //出现了bug
-  PANIC("my_shell: should not be here");
+  panic("my_shell: should not be here");
 }

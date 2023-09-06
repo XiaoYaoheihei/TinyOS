@@ -20,13 +20,13 @@ int main(void) {
    put_str("I am kernel\n");
    init_all();
    //os将程序写入hd80中,hd80中包含已经创建好的文件系统
-   // uint32_t file_size = 23800;
+   // uint32_t file_size = 24356;
    // uint32_t sec_cnt = DIV_ROUND_UP(file_size, 512);
    // printf("seccnt:%d ", sec_cnt);
    // struct disk* sda = &channels[0].devices[0];
    // void* prog_buf = sys_malloc(sec_cnt * SECTOR_SIZE);
    // ide_read(sda, 300, prog_buf, sec_cnt);
-   // int32_t fd = sys_open("/prog_arg", O_CREAT|O_RDWR);
+   // int32_t fd = sys_open("/cat", O_CREAT|O_RDWR);
    // if (fd != -1) {
    //    if (sys_write(fd, prog_buf, file_size) == -1) {
    //       printk("file write error!\n");
@@ -34,6 +34,11 @@ int main(void) {
    //    }
    // }
    // cls_screen();
+   uint32_t fd = sys_open("/file1", O_RDWR);
+   printf("fd:%d\n", fd);
+   sys_write(fd, "hello,world\n", 12);
+   sys_close(fd);
+   printf("%d closed now\n", fd);
    console_put_str("[rabbit@localhost /]$ ");
    while(1);
    return 0;

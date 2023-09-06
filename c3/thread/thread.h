@@ -107,6 +107,8 @@ struct task_struct {
   uint32_t cwd_inode_nr;
   //父进程pid
   int32_t parent_pid;
+  //进程结束时自己调用 exit 传入的参数,进程的退出状态
+  int8_t exit_status;
   //栈的边界标记，用于检测栈的溢出
   uint32_t stack_magic;
 };
@@ -127,4 +129,8 @@ void thread_unblock(struct task_struct*);
 void thread_yield(void);
 pid_t fork_pid();
 void sys_ps();
+
+void release_pid(pid_t pid);
+void thread_exit(struct task_struct* thread_over, bool need_schedule);
+struct task_struct* pid2thread(int32_t pid);
 #endif
