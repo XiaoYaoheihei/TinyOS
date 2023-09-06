@@ -1,0 +1,1638 @@
+
+prog_arg：     文件格式 elf32-i386
+
+
+Disassembly of section .text:
+
+08049000 <main>:
+#include "stdio.h"
+#include "syscall.h"
+#include "string.h"
+
+int main(int argc, char** argv) {
+ 8049000:	8d 4c 24 04          	lea    0x4(%esp),%ecx
+ 8049004:	83 e4 f0             	and    $0xfffffff0,%esp
+ 8049007:	ff 71 fc             	push   -0x4(%ecx)
+ 804900a:	55                   	push   %ebp
+ 804900b:	89 e5                	mov    %esp,%ebp
+ 804900d:	57                   	push   %edi
+ 804900e:	56                   	push   %esi
+ 804900f:	53                   	push   %ebx
+ 8049010:	51                   	push   %ecx
+ 8049011:	81 ec 28 02 00 00    	sub    $0x228,%esp
+ 8049017:	e8 99 01 00 00       	call   80491b5 <__x86.get_pc_thunk.bx>
+ 804901c:	81 c3 e4 2f 00 00    	add    $0x2fe4,%ebx
+ 8049022:	89 ce                	mov    %ecx,%esi
+ 8049024:	8b 46 04             	mov    0x4(%esi),%eax
+ 8049027:	89 85 d4 fd ff ff    	mov    %eax,-0x22c(%ebp)
+ 804902d:	65 a1 14 00 00 00    	mov    %gs:0x14,%eax
+ 8049033:	89 45 e4             	mov    %eax,-0x1c(%ebp)
+ 8049036:	31 c0                	xor    %eax,%eax
+  int arg_idx = 0;
+ 8049038:	c7 85 d8 fd ff ff 00 	movl   $0x0,-0x228(%ebp)
+ 804903f:	00 00 00 
+  while (arg_idx < argc) {
+ 8049042:	eb 37                	jmp    804907b <main+0x7b>
+    printf("argv[%d] is %s\n", arg_idx, argv[arg_idx]);
+ 8049044:	8b 85 d8 fd ff ff    	mov    -0x228(%ebp),%eax
+ 804904a:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
+ 8049051:	8b 85 d4 fd ff ff    	mov    -0x22c(%ebp),%eax
+ 8049057:	01 d0                	add    %edx,%eax
+ 8049059:	8b 00                	mov    (%eax),%eax
+ 804905b:	83 ec 04             	sub    $0x4,%esp
+ 804905e:	50                   	push   %eax
+ 804905f:	ff b5 d8 fd ff ff    	push   -0x228(%ebp)
+ 8049065:	8d 83 00 e0 ff ff    	lea    -0x2000(%ebx),%eax
+ 804906b:	50                   	push   %eax
+ 804906c:	e8 e6 0b 00 00       	call   8049c57 <printf>
+ 8049071:	83 c4 10             	add    $0x10,%esp
+    arg_idx++;
+ 8049074:	83 85 d8 fd ff ff 01 	addl   $0x1,-0x228(%ebp)
+  while (arg_idx < argc) {
+ 804907b:	8b 85 d8 fd ff ff    	mov    -0x228(%ebp),%eax
+ 8049081:	3b 06                	cmp    (%esi),%eax
+ 8049083:	7c bf                	jl     8049044 <main+0x44>
+  }  
+
+  int pid = fork();
+ 8049085:	e8 76 06 00 00       	call   8049700 <fork>
+ 804908a:	98                   	cwtl   
+ 804908b:	89 85 e0 fd ff ff    	mov    %eax,-0x220(%ebp)
+  if (pid) {
+ 8049091:	83 bd e0 fd ff ff 00 	cmpl   $0x0,-0x220(%ebp)
+ 8049098:	74 40                	je     80490da <main+0xda>
+    int delay = 900000;
+ 804909a:	c7 85 dc fd ff ff a0 	movl   $0xdbba0,-0x224(%ebp)
+ 80490a1:	bb 0d 00 
+    while (delay--);
+ 80490a4:	90                   	nop
+ 80490a5:	8b 85 dc fd ff ff    	mov    -0x224(%ebp),%eax
+ 80490ab:	8d 50 ff             	lea    -0x1(%eax),%edx
+ 80490ae:	89 95 dc fd ff ff    	mov    %edx,-0x224(%ebp)
+ 80490b4:	85 c0                	test   %eax,%eax
+ 80490b6:	75 ed                	jne    80490a5 <main+0xa5>
+    printf("\nI`m father prog, my pid:%d,I will show process list\n", getpid());
+ 80490b8:	e8 aa 05 00 00       	call   8049667 <getpid>
+ 80490bd:	83 ec 08             	sub    $0x8,%esp
+ 80490c0:	50                   	push   %eax
+ 80490c1:	8d 83 10 e0 ff ff    	lea    -0x1ff0(%ebx),%eax
+ 80490c7:	50                   	push   %eax
+ 80490c8:	e8 8a 0b 00 00       	call   8049c57 <printf>
+ 80490cd:	83 c4 10             	add    $0x10,%esp
+    ps();
+ 80490d0:	e8 e1 08 00 00       	call   80499b6 <ps>
+ 80490d5:	e9 d9 00 00 00       	jmp    80491b3 <main+0x1b3>
+  } else {
+    char abs_path[512] = {0};
+ 80490da:	c7 85 e4 fd ff ff 00 	movl   $0x0,-0x21c(%ebp)
+ 80490e1:	00 00 00 
+ 80490e4:	8d 95 e8 fd ff ff    	lea    -0x218(%ebp),%edx
+ 80490ea:	b8 00 00 00 00       	mov    $0x0,%eax
+ 80490ef:	b9 7f 00 00 00       	mov    $0x7f,%ecx
+ 80490f4:	89 d7                	mov    %edx,%edi
+ 80490f6:	f3 ab                	rep stos %eax,%es:(%edi)
+    printf("\nI`m child prog, my pid:%d,I will exec %s right now\n", getpid(), argv[1]);
+ 80490f8:	8b 85 d4 fd ff ff    	mov    -0x22c(%ebp),%eax
+ 80490fe:	83 c0 04             	add    $0x4,%eax
+ 8049101:	8b 30                	mov    (%eax),%esi
+ 8049103:	e8 5f 05 00 00       	call   8049667 <getpid>
+ 8049108:	83 ec 04             	sub    $0x4,%esp
+ 804910b:	56                   	push   %esi
+ 804910c:	50                   	push   %eax
+ 804910d:	8d 83 48 e0 ff ff    	lea    -0x1fb8(%ebx),%eax
+ 8049113:	50                   	push   %eax
+ 8049114:	e8 3e 0b 00 00       	call   8049c57 <printf>
+ 8049119:	83 c4 10             	add    $0x10,%esp
+    if (argv[1][0] != '/') {
+ 804911c:	8b 85 d4 fd ff ff    	mov    -0x22c(%ebp),%eax
+ 8049122:	83 c0 04             	add    $0x4,%eax
+ 8049125:	8b 00                	mov    (%eax),%eax
+ 8049127:	0f b6 00             	movzbl (%eax),%eax
+ 804912a:	3c 2f                	cmp    $0x2f,%al
+ 804912c:	74 68                	je     8049196 <main+0x196>
+      getcwd(abs_path, 512);
+ 804912e:	83 ec 08             	sub    $0x8,%esp
+ 8049131:	68 00 02 00 00       	push   $0x200
+ 8049136:	8d 85 e4 fd ff ff    	lea    -0x21c(%ebp),%eax
+ 804913c:	50                   	push   %eax
+ 804913d:	e8 53 06 00 00       	call   8049795 <getcwd>
+ 8049142:	83 c4 10             	add    $0x10,%esp
+      strcat(abs_path, "/");
+ 8049145:	83 ec 08             	sub    $0x8,%esp
+ 8049148:	8d 83 7d e0 ff ff    	lea    -0x1f83(%ebx),%eax
+ 804914e:	50                   	push   %eax
+ 804914f:	8d 85 e4 fd ff ff    	lea    -0x21c(%ebp),%eax
+ 8049155:	50                   	push   %eax
+ 8049156:	e8 10 04 00 00       	call   804956b <strcat>
+ 804915b:	83 c4 10             	add    $0x10,%esp
+      strcat(abs_path, argv[1]);
+ 804915e:	8b 85 d4 fd ff ff    	mov    -0x22c(%ebp),%eax
+ 8049164:	83 c0 04             	add    $0x4,%eax
+ 8049167:	8b 00                	mov    (%eax),%eax
+ 8049169:	83 ec 08             	sub    $0x8,%esp
+ 804916c:	50                   	push   %eax
+ 804916d:	8d 85 e4 fd ff ff    	lea    -0x21c(%ebp),%eax
+ 8049173:	50                   	push   %eax
+ 8049174:	e8 f2 03 00 00       	call   804956b <strcat>
+ 8049179:	83 c4 10             	add    $0x10,%esp
+      execv(abs_path, argv);
+ 804917c:	83 ec 08             	sub    $0x8,%esp
+ 804917f:	ff b5 d4 fd ff ff    	push   -0x22c(%ebp)
+ 8049185:	8d 85 e4 fd ff ff    	lea    -0x21c(%ebp),%eax
+ 804918b:	50                   	push   %eax
+ 804918c:	e8 42 08 00 00       	call   80499d3 <execv>
+ 8049191:	83 c4 10             	add    $0x10,%esp
+ 8049194:	eb 1d                	jmp    80491b3 <main+0x1b3>
+    } else {
+      execv(argv[1], argv);
+ 8049196:	8b 85 d4 fd ff ff    	mov    -0x22c(%ebp),%eax
+ 804919c:	83 c0 04             	add    $0x4,%eax
+ 804919f:	8b 00                	mov    (%eax),%eax
+ 80491a1:	83 ec 08             	sub    $0x8,%esp
+ 80491a4:	ff b5 d4 fd ff ff    	push   -0x22c(%ebp)
+ 80491aa:	50                   	push   %eax
+ 80491ab:	e8 23 08 00 00       	call   80499d3 <execv>
+ 80491b0:	83 c4 10             	add    $0x10,%esp
+    }
+  }
+  while (1);
+ 80491b3:	eb fe                	jmp    80491b3 <main+0x1b3>
+
+080491b5 <__x86.get_pc_thunk.bx>:
+ 80491b5:	8b 1c 24             	mov    (%esp),%ebx
+ 80491b8:	c3                   	ret    
+
+080491b9 <memset>:
+#include "string.h"
+#include "user/assert.h"
+#include "../kernel/global.h"
+
+//将从dst开始的size个字节置为value
+void memset(void* dst_, uint8_t value, uint32_t size) {
+ 80491b9:	55                   	push   %ebp
+ 80491ba:	89 e5                	mov    %esp,%ebp
+ 80491bc:	53                   	push   %ebx
+ 80491bd:	83 ec 24             	sub    $0x24,%esp
+ 80491c0:	e8 9e 04 00 00       	call   8049663 <__x86.get_pc_thunk.ax>
+ 80491c5:	05 3b 2e 00 00       	add    $0x2e3b,%eax
+ 80491ca:	8b 55 0c             	mov    0xc(%ebp),%edx
+ 80491cd:	88 55 e4             	mov    %dl,-0x1c(%ebp)
+  assert(dst_ != NULL);
+ 80491d0:	83 7d 08 00          	cmpl   $0x0,0x8(%ebp)
+ 80491d4:	75 21                	jne    80491f7 <memset+0x3e>
+ 80491d6:	8d 90 80 e0 ff ff    	lea    -0x1f80(%eax),%edx
+ 80491dc:	52                   	push   %edx
+ 80491dd:	8d 90 f0 e0 ff ff    	lea    -0x1f10(%eax),%edx
+ 80491e3:	52                   	push   %edx
+ 80491e4:	6a 07                	push   $0x7
+ 80491e6:	8d 90 8d e0 ff ff    	lea    -0x1f73(%eax),%edx
+ 80491ec:	52                   	push   %edx
+ 80491ed:	89 c3                	mov    %eax,%ebx
+ 80491ef:	e8 eb 0a 00 00       	call   8049cdf <user_spin>
+ 80491f4:	83 c4 10             	add    $0x10,%esp
+  uint8_t* dst = (uint8_t*)dst_;
+ 80491f7:	8b 45 08             	mov    0x8(%ebp),%eax
+ 80491fa:	89 45 f4             	mov    %eax,-0xc(%ebp)
+  while (size-- > 0) {
+ 80491fd:	eb 0f                	jmp    804920e <memset+0x55>
+    *dst++ = value;
+ 80491ff:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 8049202:	8d 50 01             	lea    0x1(%eax),%edx
+ 8049205:	89 55 f4             	mov    %edx,-0xc(%ebp)
+ 8049208:	0f b6 55 e4          	movzbl -0x1c(%ebp),%edx
+ 804920c:	88 10                	mov    %dl,(%eax)
+  while (size-- > 0) {
+ 804920e:	8b 45 10             	mov    0x10(%ebp),%eax
+ 8049211:	8d 50 ff             	lea    -0x1(%eax),%edx
+ 8049214:	89 55 10             	mov    %edx,0x10(%ebp)
+ 8049217:	85 c0                	test   %eax,%eax
+ 8049219:	75 e4                	jne    80491ff <memset+0x46>
+  }
+}
+ 804921b:	90                   	nop
+ 804921c:	90                   	nop
+ 804921d:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 8049220:	c9                   	leave  
+ 8049221:	c3                   	ret    
+
+08049222 <memcpy>:
+
+//将从src开始的size个字节复制到dst处
+void memcpy(void* dst_, const void* src_, uint32_t size) {
+ 8049222:	55                   	push   %ebp
+ 8049223:	89 e5                	mov    %esp,%ebp
+ 8049225:	53                   	push   %ebx
+ 8049226:	83 ec 14             	sub    $0x14,%esp
+ 8049229:	e8 35 04 00 00       	call   8049663 <__x86.get_pc_thunk.ax>
+ 804922e:	05 d2 2d 00 00       	add    $0x2dd2,%eax
+  assert(dst_ != NULL && src_ != NULL);
+ 8049233:	83 7d 08 00          	cmpl   $0x0,0x8(%ebp)
+ 8049237:	74 06                	je     804923f <memcpy+0x1d>
+ 8049239:	83 7d 0c 00          	cmpl   $0x0,0xc(%ebp)
+ 804923d:	75 21                	jne    8049260 <memcpy+0x3e>
+ 804923f:	8d 90 9a e0 ff ff    	lea    -0x1f66(%eax),%edx
+ 8049245:	52                   	push   %edx
+ 8049246:	8d 90 f8 e0 ff ff    	lea    -0x1f08(%eax),%edx
+ 804924c:	52                   	push   %edx
+ 804924d:	6a 10                	push   $0x10
+ 804924f:	8d 90 8d e0 ff ff    	lea    -0x1f73(%eax),%edx
+ 8049255:	52                   	push   %edx
+ 8049256:	89 c3                	mov    %eax,%ebx
+ 8049258:	e8 82 0a 00 00       	call   8049cdf <user_spin>
+ 804925d:	83 c4 10             	add    $0x10,%esp
+  uint8_t* dst = (uint8_t*)dst_;
+ 8049260:	8b 45 08             	mov    0x8(%ebp),%eax
+ 8049263:	89 45 f4             	mov    %eax,-0xc(%ebp)
+  const uint8_t* src = (uint8_t*)src_;
+ 8049266:	8b 45 0c             	mov    0xc(%ebp),%eax
+ 8049269:	89 45 f0             	mov    %eax,-0x10(%ebp)
+  while (size-- > 0){
+ 804926c:	eb 17                	jmp    8049285 <memcpy+0x63>
+    *dst++ = *src++;
+ 804926e:	8b 55 f0             	mov    -0x10(%ebp),%edx
+ 8049271:	8d 42 01             	lea    0x1(%edx),%eax
+ 8049274:	89 45 f0             	mov    %eax,-0x10(%ebp)
+ 8049277:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 804927a:	8d 48 01             	lea    0x1(%eax),%ecx
+ 804927d:	89 4d f4             	mov    %ecx,-0xc(%ebp)
+ 8049280:	0f b6 12             	movzbl (%edx),%edx
+ 8049283:	88 10                	mov    %dl,(%eax)
+  while (size-- > 0){
+ 8049285:	8b 45 10             	mov    0x10(%ebp),%eax
+ 8049288:	8d 50 ff             	lea    -0x1(%eax),%edx
+ 804928b:	89 55 10             	mov    %edx,0x10(%ebp)
+ 804928e:	85 c0                	test   %eax,%eax
+ 8049290:	75 dc                	jne    804926e <memcpy+0x4c>
+  }
+}
+ 8049292:	90                   	nop
+ 8049293:	90                   	nop
+ 8049294:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 8049297:	c9                   	leave  
+ 8049298:	c3                   	ret    
+
+08049299 <memcmp>:
+
+//比较以地址a_和地址b_开头的size个字节
+//相等就返回0,a_>b_返回1,否则返回-1
+int memcmp(const void* a_, const void* b_, uint32_t size) {
+ 8049299:	55                   	push   %ebp
+ 804929a:	89 e5                	mov    %esp,%ebp
+ 804929c:	53                   	push   %ebx
+ 804929d:	83 ec 14             	sub    $0x14,%esp
+ 80492a0:	e8 be 03 00 00       	call   8049663 <__x86.get_pc_thunk.ax>
+ 80492a5:	05 5b 2d 00 00       	add    $0x2d5b,%eax
+  const char* a = a_;
+ 80492aa:	8b 55 08             	mov    0x8(%ebp),%edx
+ 80492ad:	89 55 f4             	mov    %edx,-0xc(%ebp)
+  const char* b = b_;
+ 80492b0:	8b 55 0c             	mov    0xc(%ebp),%edx
+ 80492b3:	89 55 f0             	mov    %edx,-0x10(%ebp)
+  assert(a != NULL || b != NULL);
+ 80492b6:	83 7d f4 00          	cmpl   $0x0,-0xc(%ebp)
+ 80492ba:	75 5f                	jne    804931b <memcmp+0x82>
+ 80492bc:	83 7d f0 00          	cmpl   $0x0,-0x10(%ebp)
+ 80492c0:	75 59                	jne    804931b <memcmp+0x82>
+ 80492c2:	8d 90 b7 e0 ff ff    	lea    -0x1f49(%eax),%edx
+ 80492c8:	52                   	push   %edx
+ 80492c9:	8d 90 00 e1 ff ff    	lea    -0x1f00(%eax),%edx
+ 80492cf:	52                   	push   %edx
+ 80492d0:	6a 1d                	push   $0x1d
+ 80492d2:	8d 90 8d e0 ff ff    	lea    -0x1f73(%eax),%edx
+ 80492d8:	52                   	push   %edx
+ 80492d9:	89 c3                	mov    %eax,%ebx
+ 80492db:	e8 ff 09 00 00       	call   8049cdf <user_spin>
+ 80492e0:	83 c4 10             	add    $0x10,%esp
+  while (size-- > 0) {
+ 80492e3:	eb 36                	jmp    804931b <memcmp+0x82>
+    if (*a != *b) {
+ 80492e5:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 80492e8:	0f b6 10             	movzbl (%eax),%edx
+ 80492eb:	8b 45 f0             	mov    -0x10(%ebp),%eax
+ 80492ee:	0f b6 00             	movzbl (%eax),%eax
+ 80492f1:	38 c2                	cmp    %al,%dl
+ 80492f3:	74 1e                	je     8049313 <memcmp+0x7a>
+      return *a > *b ? 1 :-1;
+ 80492f5:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 80492f8:	0f b6 10             	movzbl (%eax),%edx
+ 80492fb:	8b 45 f0             	mov    -0x10(%ebp),%eax
+ 80492fe:	0f b6 00             	movzbl (%eax),%eax
+ 8049301:	38 c2                	cmp    %al,%dl
+ 8049303:	7e 07                	jle    804930c <memcmp+0x73>
+ 8049305:	b8 01 00 00 00       	mov    $0x1,%eax
+ 804930a:	eb 21                	jmp    804932d <memcmp+0x94>
+ 804930c:	b8 ff ff ff ff       	mov    $0xffffffff,%eax
+ 8049311:	eb 1a                	jmp    804932d <memcmp+0x94>
+    }
+    a++;
+ 8049313:	83 45 f4 01          	addl   $0x1,-0xc(%ebp)
+    b++;
+ 8049317:	83 45 f0 01          	addl   $0x1,-0x10(%ebp)
+  while (size-- > 0) {
+ 804931b:	8b 45 10             	mov    0x10(%ebp),%eax
+ 804931e:	8d 50 ff             	lea    -0x1(%eax),%edx
+ 8049321:	89 55 10             	mov    %edx,0x10(%ebp)
+ 8049324:	85 c0                	test   %eax,%eax
+ 8049326:	75 bd                	jne    80492e5 <memcmp+0x4c>
+  }
+  return 0;
+ 8049328:	b8 00 00 00 00       	mov    $0x0,%eax
+}
+ 804932d:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 8049330:	c9                   	leave  
+ 8049331:	c3                   	ret    
+
+08049332 <strcpy>:
+
+//字符串复制
+char* strcpy(char* dst_,const char* src_) {
+ 8049332:	55                   	push   %ebp
+ 8049333:	89 e5                	mov    %esp,%ebp
+ 8049335:	53                   	push   %ebx
+ 8049336:	83 ec 14             	sub    $0x14,%esp
+ 8049339:	e8 25 03 00 00       	call   8049663 <__x86.get_pc_thunk.ax>
+ 804933e:	05 c2 2c 00 00       	add    $0x2cc2,%eax
+  assert(dst_ != NULL && src_ != NULL);
+ 8049343:	83 7d 08 00          	cmpl   $0x0,0x8(%ebp)
+ 8049347:	74 06                	je     804934f <strcpy+0x1d>
+ 8049349:	83 7d 0c 00          	cmpl   $0x0,0xc(%ebp)
+ 804934d:	75 21                	jne    8049370 <strcpy+0x3e>
+ 804934f:	8d 90 9a e0 ff ff    	lea    -0x1f66(%eax),%edx
+ 8049355:	52                   	push   %edx
+ 8049356:	8d 90 08 e1 ff ff    	lea    -0x1ef8(%eax),%edx
+ 804935c:	52                   	push   %edx
+ 804935d:	6a 2a                	push   $0x2a
+ 804935f:	8d 90 8d e0 ff ff    	lea    -0x1f73(%eax),%edx
+ 8049365:	52                   	push   %edx
+ 8049366:	89 c3                	mov    %eax,%ebx
+ 8049368:	e8 72 09 00 00       	call   8049cdf <user_spin>
+ 804936d:	83 c4 10             	add    $0x10,%esp
+  char* r = dst_;   //返回目的字符串地址
+ 8049370:	8b 45 08             	mov    0x8(%ebp),%eax
+ 8049373:	89 45 f4             	mov    %eax,-0xc(%ebp)
+  //脑瘫了，写了一个*src != *dst的判读条件
+  //这样肯定会造成缺页异常啊！！！！
+  while(*src_) {  
+ 8049376:	eb 13                	jmp    804938b <strcpy+0x59>
+    *dst_ = *src_;
+ 8049378:	8b 45 0c             	mov    0xc(%ebp),%eax
+ 804937b:	0f b6 10             	movzbl (%eax),%edx
+ 804937e:	8b 45 08             	mov    0x8(%ebp),%eax
+ 8049381:	88 10                	mov    %dl,(%eax)
+    dst_++;
+ 8049383:	83 45 08 01          	addl   $0x1,0x8(%ebp)
+    src_++; 
+ 8049387:	83 45 0c 01          	addl   $0x1,0xc(%ebp)
+  while(*src_) {  
+ 804938b:	8b 45 0c             	mov    0xc(%ebp),%eax
+ 804938e:	0f b6 00             	movzbl (%eax),%eax
+ 8049391:	84 c0                	test   %al,%al
+ 8049393:	75 e3                	jne    8049378 <strcpy+0x46>
+  }
+  return r;
+ 8049395:	8b 45 f4             	mov    -0xc(%ebp),%eax
+}
+ 8049398:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 804939b:	c9                   	leave  
+ 804939c:	c3                   	ret    
+
+0804939d <strlen>:
+
+//字符串长度
+uint32_t strlen(const char* str) {
+ 804939d:	55                   	push   %ebp
+ 804939e:	89 e5                	mov    %esp,%ebp
+ 80493a0:	53                   	push   %ebx
+ 80493a1:	83 ec 14             	sub    $0x14,%esp
+ 80493a4:	e8 ba 02 00 00       	call   8049663 <__x86.get_pc_thunk.ax>
+ 80493a9:	05 57 2c 00 00       	add    $0x2c57,%eax
+  assert(str != NULL);
+ 80493ae:	83 7d 08 00          	cmpl   $0x0,0x8(%ebp)
+ 80493b2:	75 21                	jne    80493d5 <strlen+0x38>
+ 80493b4:	8d 90 ce e0 ff ff    	lea    -0x1f32(%eax),%edx
+ 80493ba:	52                   	push   %edx
+ 80493bb:	8d 90 10 e1 ff ff    	lea    -0x1ef0(%eax),%edx
+ 80493c1:	52                   	push   %edx
+ 80493c2:	6a 38                	push   $0x38
+ 80493c4:	8d 90 8d e0 ff ff    	lea    -0x1f73(%eax),%edx
+ 80493ca:	52                   	push   %edx
+ 80493cb:	89 c3                	mov    %eax,%ebx
+ 80493cd:	e8 0d 09 00 00       	call   8049cdf <user_spin>
+ 80493d2:	83 c4 10             	add    $0x10,%esp
+  const char* p = str;
+ 80493d5:	8b 45 08             	mov    0x8(%ebp),%eax
+ 80493d8:	89 45 f4             	mov    %eax,-0xc(%ebp)
+  while (*p++);
+ 80493db:	90                   	nop
+ 80493dc:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 80493df:	8d 50 01             	lea    0x1(%eax),%edx
+ 80493e2:	89 55 f4             	mov    %edx,-0xc(%ebp)
+ 80493e5:	0f b6 00             	movzbl (%eax),%eax
+ 80493e8:	84 c0                	test   %al,%al
+ 80493ea:	75 f0                	jne    80493dc <strlen+0x3f>
+  return (p-str-1);
+ 80493ec:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 80493ef:	2b 45 08             	sub    0x8(%ebp),%eax
+ 80493f2:	83 e8 01             	sub    $0x1,%eax
+}
+ 80493f5:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 80493f8:	c9                   	leave  
+ 80493f9:	c3                   	ret    
+
+080493fa <strcmp>:
+
+//字符串比较
+int8_t strcmp(const char* a, const char* b) {
+ 80493fa:	55                   	push   %ebp
+ 80493fb:	89 e5                	mov    %esp,%ebp
+ 80493fd:	53                   	push   %ebx
+ 80493fe:	83 ec 04             	sub    $0x4,%esp
+ 8049401:	e8 5d 02 00 00       	call   8049663 <__x86.get_pc_thunk.ax>
+ 8049406:	05 fa 2b 00 00       	add    $0x2bfa,%eax
+  assert(a != NULL && b!= NULL);
+ 804940b:	83 7d 08 00          	cmpl   $0x0,0x8(%ebp)
+ 804940f:	74 06                	je     8049417 <strcmp+0x1d>
+ 8049411:	83 7d 0c 00          	cmpl   $0x0,0xc(%ebp)
+ 8049415:	75 2b                	jne    8049442 <strcmp+0x48>
+ 8049417:	8d 90 da e0 ff ff    	lea    -0x1f26(%eax),%edx
+ 804941d:	52                   	push   %edx
+ 804941e:	8d 90 18 e1 ff ff    	lea    -0x1ee8(%eax),%edx
+ 8049424:	52                   	push   %edx
+ 8049425:	6a 40                	push   $0x40
+ 8049427:	8d 90 8d e0 ff ff    	lea    -0x1f73(%eax),%edx
+ 804942d:	52                   	push   %edx
+ 804942e:	89 c3                	mov    %eax,%ebx
+ 8049430:	e8 aa 08 00 00       	call   8049cdf <user_spin>
+ 8049435:	83 c4 10             	add    $0x10,%esp
+  while (*a != 0 && *a == *b) {
+ 8049438:	eb 08                	jmp    8049442 <strcmp+0x48>
+    a++;
+ 804943a:	83 45 08 01          	addl   $0x1,0x8(%ebp)
+    b++;
+ 804943e:	83 45 0c 01          	addl   $0x1,0xc(%ebp)
+  while (*a != 0 && *a == *b) {
+ 8049442:	8b 45 08             	mov    0x8(%ebp),%eax
+ 8049445:	0f b6 00             	movzbl (%eax),%eax
+ 8049448:	84 c0                	test   %al,%al
+ 804944a:	74 10                	je     804945c <strcmp+0x62>
+ 804944c:	8b 45 08             	mov    0x8(%ebp),%eax
+ 804944f:	0f b6 10             	movzbl (%eax),%edx
+ 8049452:	8b 45 0c             	mov    0xc(%ebp),%eax
+ 8049455:	0f b6 00             	movzbl (%eax),%eax
+ 8049458:	38 c2                	cmp    %al,%dl
+ 804945a:	74 de                	je     804943a <strcmp+0x40>
+  }
+  //<的话返回-1
+  //否则就是*a>*b表达式的值
+  //为真则为1,否则则为0
+  return *a < *b ? -1 : *a > *b;
+ 804945c:	8b 45 08             	mov    0x8(%ebp),%eax
+ 804945f:	0f b6 10             	movzbl (%eax),%edx
+ 8049462:	8b 45 0c             	mov    0xc(%ebp),%eax
+ 8049465:	0f b6 00             	movzbl (%eax),%eax
+ 8049468:	38 c2                	cmp    %al,%dl
+ 804946a:	7c 13                	jl     804947f <strcmp+0x85>
+ 804946c:	8b 45 08             	mov    0x8(%ebp),%eax
+ 804946f:	0f b6 10             	movzbl (%eax),%edx
+ 8049472:	8b 45 0c             	mov    0xc(%ebp),%eax
+ 8049475:	0f b6 00             	movzbl (%eax),%eax
+ 8049478:	38 c2                	cmp    %al,%dl
+ 804947a:	0f 9f c0             	setg   %al
+ 804947d:	eb 05                	jmp    8049484 <strcmp+0x8a>
+ 804947f:	b8 ff ff ff ff       	mov    $0xffffffff,%eax
+}
+ 8049484:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 8049487:	c9                   	leave  
+ 8049488:	c3                   	ret    
+
+08049489 <strchar>:
+
+//从左往右查找字符
+char* strchar(const char* str, const uint8_t ch) {
+ 8049489:	55                   	push   %ebp
+ 804948a:	89 e5                	mov    %esp,%ebp
+ 804948c:	53                   	push   %ebx
+ 804948d:	83 ec 14             	sub    $0x14,%esp
+ 8049490:	e8 ce 01 00 00       	call   8049663 <__x86.get_pc_thunk.ax>
+ 8049495:	05 6b 2b 00 00       	add    $0x2b6b,%eax
+ 804949a:	8b 55 0c             	mov    0xc(%ebp),%edx
+ 804949d:	88 55 f4             	mov    %dl,-0xc(%ebp)
+  assert(str != NULL);
+ 80494a0:	83 7d 08 00          	cmpl   $0x0,0x8(%ebp)
+ 80494a4:	75 3d                	jne    80494e3 <strchar+0x5a>
+ 80494a6:	8d 90 ce e0 ff ff    	lea    -0x1f32(%eax),%edx
+ 80494ac:	52                   	push   %edx
+ 80494ad:	8d 90 20 e1 ff ff    	lea    -0x1ee0(%eax),%edx
+ 80494b3:	52                   	push   %edx
+ 80494b4:	6a 4d                	push   $0x4d
+ 80494b6:	8d 90 8d e0 ff ff    	lea    -0x1f73(%eax),%edx
+ 80494bc:	52                   	push   %edx
+ 80494bd:	89 c3                	mov    %eax,%ebx
+ 80494bf:	e8 1b 08 00 00       	call   8049cdf <user_spin>
+ 80494c4:	83 c4 10             	add    $0x10,%esp
+  while (*str != 0) {
+ 80494c7:	eb 1a                	jmp    80494e3 <strchar+0x5a>
+    if (*str == ch) {
+ 80494c9:	8b 45 08             	mov    0x8(%ebp),%eax
+ 80494cc:	0f b6 00             	movzbl (%eax),%eax
+ 80494cf:	0f be d0             	movsbl %al,%edx
+ 80494d2:	0f b6 45 f4          	movzbl -0xc(%ebp),%eax
+ 80494d6:	39 c2                	cmp    %eax,%edx
+ 80494d8:	75 05                	jne    80494df <strchar+0x56>
+      return (char*)str;  //强制类型转化成和返回类型一致
+ 80494da:	8b 45 08             	mov    0x8(%ebp),%eax
+ 80494dd:	eb 13                	jmp    80494f2 <strchar+0x69>
+    }
+    str++;
+ 80494df:	83 45 08 01          	addl   $0x1,0x8(%ebp)
+  while (*str != 0) {
+ 80494e3:	8b 45 08             	mov    0x8(%ebp),%eax
+ 80494e6:	0f b6 00             	movzbl (%eax),%eax
+ 80494e9:	84 c0                	test   %al,%al
+ 80494eb:	75 dc                	jne    80494c9 <strchar+0x40>
+  }
+  return NULL;
+ 80494ed:	b8 00 00 00 00       	mov    $0x0,%eax
+}
+ 80494f2:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 80494f5:	c9                   	leave  
+ 80494f6:	c3                   	ret    
+
+080494f7 <strrchar>:
+
+//从右往左查找字符
+//脑瘫问题+1,应该找到最后一个ch，不应该找到第一个ch之后就直接break
+char* strrchar(const char* str, const uint8_t ch) {
+ 80494f7:	55                   	push   %ebp
+ 80494f8:	89 e5                	mov    %esp,%ebp
+ 80494fa:	53                   	push   %ebx
+ 80494fb:	83 ec 24             	sub    $0x24,%esp
+ 80494fe:	e8 60 01 00 00       	call   8049663 <__x86.get_pc_thunk.ax>
+ 8049503:	05 fd 2a 00 00       	add    $0x2afd,%eax
+ 8049508:	8b 55 0c             	mov    0xc(%ebp),%edx
+ 804950b:	88 55 e4             	mov    %dl,-0x1c(%ebp)
+  assert(str != NULL);
+ 804950e:	83 7d 08 00          	cmpl   $0x0,0x8(%ebp)
+ 8049512:	75 21                	jne    8049535 <strrchar+0x3e>
+ 8049514:	8d 90 ce e0 ff ff    	lea    -0x1f32(%eax),%edx
+ 804951a:	52                   	push   %edx
+ 804951b:	8d 90 28 e1 ff ff    	lea    -0x1ed8(%eax),%edx
+ 8049521:	52                   	push   %edx
+ 8049522:	6a 5a                	push   $0x5a
+ 8049524:	8d 90 8d e0 ff ff    	lea    -0x1f73(%eax),%edx
+ 804952a:	52                   	push   %edx
+ 804952b:	89 c3                	mov    %eax,%ebx
+ 804952d:	e8 ad 07 00 00       	call   8049cdf <user_spin>
+ 8049532:	83 c4 10             	add    $0x10,%esp
+  const char* last = NULL;
+ 8049535:	c7 45 f4 00 00 00 00 	movl   $0x0,-0xc(%ebp)
+  while (*str != 0) {
+ 804953c:	eb 1b                	jmp    8049559 <strrchar+0x62>
+    if (*str == ch) {
+ 804953e:	8b 45 08             	mov    0x8(%ebp),%eax
+ 8049541:	0f b6 00             	movzbl (%eax),%eax
+ 8049544:	0f be d0             	movsbl %al,%edx
+ 8049547:	0f b6 45 e4          	movzbl -0x1c(%ebp),%eax
+ 804954b:	39 c2                	cmp    %eax,%edx
+ 804954d:	75 06                	jne    8049555 <strrchar+0x5e>
+      last = str;
+ 804954f:	8b 45 08             	mov    0x8(%ebp),%eax
+ 8049552:	89 45 f4             	mov    %eax,-0xc(%ebp)
+    }
+    str++;
+ 8049555:	83 45 08 01          	addl   $0x1,0x8(%ebp)
+  while (*str != 0) {
+ 8049559:	8b 45 08             	mov    0x8(%ebp),%eax
+ 804955c:	0f b6 00             	movzbl (%eax),%eax
+ 804955f:	84 c0                	test   %al,%al
+ 8049561:	75 db                	jne    804953e <strrchar+0x47>
+  }
+  return (char*)last;
+ 8049563:	8b 45 f4             	mov    -0xc(%ebp),%eax
+}
+ 8049566:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 8049569:	c9                   	leave  
+ 804956a:	c3                   	ret    
+
+0804956b <strcat>:
+
+//拼接字符串
+char* strcat(char* dst_, const char* src_) {
+ 804956b:	55                   	push   %ebp
+ 804956c:	89 e5                	mov    %esp,%ebp
+ 804956e:	53                   	push   %ebx
+ 804956f:	83 ec 14             	sub    $0x14,%esp
+ 8049572:	e8 ec 00 00 00       	call   8049663 <__x86.get_pc_thunk.ax>
+ 8049577:	05 89 2a 00 00       	add    $0x2a89,%eax
+  assert(dst_ != NULL && src_ != NULL);
+ 804957c:	83 7d 08 00          	cmpl   $0x0,0x8(%ebp)
+ 8049580:	74 06                	je     8049588 <strcat+0x1d>
+ 8049582:	83 7d 0c 00          	cmpl   $0x0,0xc(%ebp)
+ 8049586:	75 21                	jne    80495a9 <strcat+0x3e>
+ 8049588:	8d 90 9a e0 ff ff    	lea    -0x1f66(%eax),%edx
+ 804958e:	52                   	push   %edx
+ 804958f:	8d 90 34 e1 ff ff    	lea    -0x1ecc(%eax),%edx
+ 8049595:	52                   	push   %edx
+ 8049596:	6a 67                	push   $0x67
+ 8049598:	8d 90 8d e0 ff ff    	lea    -0x1f73(%eax),%edx
+ 804959e:	52                   	push   %edx
+ 804959f:	89 c3                	mov    %eax,%ebx
+ 80495a1:	e8 39 07 00 00       	call   8049cdf <user_spin>
+ 80495a6:	83 c4 10             	add    $0x10,%esp
+  char* str = dst_;
+ 80495a9:	8b 45 08             	mov    0x8(%ebp),%eax
+ 80495ac:	89 45 f4             	mov    %eax,-0xc(%ebp)
+  while (*str++);
+ 80495af:	90                   	nop
+ 80495b0:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 80495b3:	8d 50 01             	lea    0x1(%eax),%edx
+ 80495b6:	89 55 f4             	mov    %edx,-0xc(%ebp)
+ 80495b9:	0f b6 00             	movzbl (%eax),%eax
+ 80495bc:	84 c0                	test   %al,%al
+ 80495be:	75 f0                	jne    80495b0 <strcat+0x45>
+  --str;//向前移动一位
+ 80495c0:	83 6d f4 01          	subl   $0x1,-0xc(%ebp)
+  //当结尾都被赋予0的时候，while循环结束
+  // 当*str被赋值为0时,此时表达式不成立,正好添加了字符串结尾的0.
+  while ((*str++ = *src_++));
+ 80495c4:	90                   	nop
+ 80495c5:	8b 55 0c             	mov    0xc(%ebp),%edx
+ 80495c8:	8d 42 01             	lea    0x1(%edx),%eax
+ 80495cb:	89 45 0c             	mov    %eax,0xc(%ebp)
+ 80495ce:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 80495d1:	8d 48 01             	lea    0x1(%eax),%ecx
+ 80495d4:	89 4d f4             	mov    %ecx,-0xc(%ebp)
+ 80495d7:	0f b6 12             	movzbl (%edx),%edx
+ 80495da:	88 10                	mov    %dl,(%eax)
+ 80495dc:	0f b6 00             	movzbl (%eax),%eax
+ 80495df:	84 c0                	test   %al,%al
+ 80495e1:	75 e2                	jne    80495c5 <strcat+0x5a>
+  return dst_;
+ 80495e3:	8b 45 08             	mov    0x8(%ebp),%eax
+}
+ 80495e6:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 80495e9:	c9                   	leave  
+ 80495ea:	c3                   	ret    
+
+080495eb <strchars>:
+
+//字符串中字符出现的次数
+uint32_t strchars(const char* str, uint8_t ch) {
+ 80495eb:	55                   	push   %ebp
+ 80495ec:	89 e5                	mov    %esp,%ebp
+ 80495ee:	53                   	push   %ebx
+ 80495ef:	83 ec 24             	sub    $0x24,%esp
+ 80495f2:	e8 6c 00 00 00       	call   8049663 <__x86.get_pc_thunk.ax>
+ 80495f7:	05 09 2a 00 00       	add    $0x2a09,%eax
+ 80495fc:	8b 55 0c             	mov    0xc(%ebp),%edx
+ 80495ff:	88 55 e4             	mov    %dl,-0x1c(%ebp)
+  assert(str != NULL);
+ 8049602:	83 7d 08 00          	cmpl   $0x0,0x8(%ebp)
+ 8049606:	75 21                	jne    8049629 <strchars+0x3e>
+ 8049608:	8d 90 ce e0 ff ff    	lea    -0x1f32(%eax),%edx
+ 804960e:	52                   	push   %edx
+ 804960f:	8d 90 3c e1 ff ff    	lea    -0x1ec4(%eax),%edx
+ 8049615:	52                   	push   %edx
+ 8049616:	6a 73                	push   $0x73
+ 8049618:	8d 90 8d e0 ff ff    	lea    -0x1f73(%eax),%edx
+ 804961e:	52                   	push   %edx
+ 804961f:	89 c3                	mov    %eax,%ebx
+ 8049621:	e8 b9 06 00 00       	call   8049cdf <user_spin>
+ 8049626:	83 c4 10             	add    $0x10,%esp
+  uint32_t ch_cnt = 0;
+ 8049629:	c7 45 f4 00 00 00 00 	movl   $0x0,-0xc(%ebp)
+  const char* p = str;
+ 8049630:	8b 45 08             	mov    0x8(%ebp),%eax
+ 8049633:	89 45 f0             	mov    %eax,-0x10(%ebp)
+  while (*p != 0) {
+ 8049636:	eb 19                	jmp    8049651 <strchars+0x66>
+    if (*p == ch) {
+ 8049638:	8b 45 f0             	mov    -0x10(%ebp),%eax
+ 804963b:	0f b6 00             	movzbl (%eax),%eax
+ 804963e:	0f be d0             	movsbl %al,%edx
+ 8049641:	0f b6 45 e4          	movzbl -0x1c(%ebp),%eax
+ 8049645:	39 c2                	cmp    %eax,%edx
+ 8049647:	75 04                	jne    804964d <strchars+0x62>
+      ch_cnt++;
+ 8049649:	83 45 f4 01          	addl   $0x1,-0xc(%ebp)
+    }
+    p++;
+ 804964d:	83 45 f0 01          	addl   $0x1,-0x10(%ebp)
+  while (*p != 0) {
+ 8049651:	8b 45 f0             	mov    -0x10(%ebp),%eax
+ 8049654:	0f b6 00             	movzbl (%eax),%eax
+ 8049657:	84 c0                	test   %al,%al
+ 8049659:	75 dd                	jne    8049638 <strchars+0x4d>
+  }
+  return ch_cnt;
+ 804965b:	8b 45 f4             	mov    -0xc(%ebp),%eax
+}
+ 804965e:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 8049661:	c9                   	leave  
+ 8049662:	c3                   	ret    
+
+08049663 <__x86.get_pc_thunk.ax>:
+ 8049663:	8b 04 24             	mov    (%esp),%eax
+ 8049666:	c3                   	ret    
+
+08049667 <getpid>:
+  : "memory"        \
+  );                \
+  retval;           \
+})
+
+uint32_t getpid() {
+ 8049667:	55                   	push   %ebp
+ 8049668:	89 e5                	mov    %esp,%ebp
+ 804966a:	83 ec 10             	sub    $0x10,%esp
+ 804966d:	e8 f1 ff ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 8049672:	05 8e 29 00 00       	add    $0x298e,%eax
+  return _syscall0(SYS_GETPID);
+ 8049677:	b8 00 00 00 00       	mov    $0x0,%eax
+ 804967c:	cd 80                	int    $0x80
+ 804967e:	89 45 fc             	mov    %eax,-0x4(%ebp)
+ 8049681:	8b 45 fc             	mov    -0x4(%ebp),%eax
+}
+ 8049684:	c9                   	leave  
+ 8049685:	c3                   	ret    
+
+08049686 <write>:
+
+//把 buf 中 count 个字符写入文件描述符 fd
+uint32_t write(int32_t fd, const void* buf, uint32_t count) {
+ 8049686:	55                   	push   %ebp
+ 8049687:	89 e5                	mov    %esp,%ebp
+ 8049689:	53                   	push   %ebx
+ 804968a:	83 ec 10             	sub    $0x10,%esp
+ 804968d:	e8 d1 ff ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 8049692:	05 6e 29 00 00       	add    $0x296e,%eax
+  return _syscall3(SYS_WRITE, fd, buf, count);
+ 8049697:	b8 01 00 00 00       	mov    $0x1,%eax
+ 804969c:	8b 5d 08             	mov    0x8(%ebp),%ebx
+ 804969f:	8b 4d 0c             	mov    0xc(%ebp),%ecx
+ 80496a2:	8b 55 10             	mov    0x10(%ebp),%edx
+ 80496a5:	cd 80                	int    $0x80
+ 80496a7:	89 45 f8             	mov    %eax,-0x8(%ebp)
+ 80496aa:	8b 45 f8             	mov    -0x8(%ebp),%eax
+}
+ 80496ad:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 80496b0:	c9                   	leave  
+ 80496b1:	c3                   	ret    
+
+080496b2 <malloc>:
+
+//申请 size 字节大小的内存，并返回结果
+void* malloc(uint32_t size) {
+ 80496b2:	55                   	push   %ebp
+ 80496b3:	89 e5                	mov    %esp,%ebp
+ 80496b5:	53                   	push   %ebx
+ 80496b6:	83 ec 10             	sub    $0x10,%esp
+ 80496b9:	e8 a5 ff ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 80496be:	05 42 29 00 00       	add    $0x2942,%eax
+  return (void*)_syscall1(SYS_MALLOC, size);
+ 80496c3:	b8 02 00 00 00       	mov    $0x2,%eax
+ 80496c8:	8b 55 08             	mov    0x8(%ebp),%edx
+ 80496cb:	89 d3                	mov    %edx,%ebx
+ 80496cd:	cd 80                	int    $0x80
+ 80496cf:	89 45 f8             	mov    %eax,-0x8(%ebp)
+ 80496d2:	8b 45 f8             	mov    -0x8(%ebp),%eax
+}
+ 80496d5:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 80496d8:	c9                   	leave  
+ 80496d9:	c3                   	ret    
+
+080496da <free>:
+
+//释放 ptr 指向的内存
+void free(void* ptr) {
+ 80496da:	55                   	push   %ebp
+ 80496db:	89 e5                	mov    %esp,%ebp
+ 80496dd:	53                   	push   %ebx
+ 80496de:	83 ec 10             	sub    $0x10,%esp
+ 80496e1:	e8 7d ff ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 80496e6:	05 1a 29 00 00       	add    $0x291a,%eax
+  _syscall1(SYS_FREE, ptr);
+ 80496eb:	b8 03 00 00 00       	mov    $0x3,%eax
+ 80496f0:	8b 55 08             	mov    0x8(%ebp),%edx
+ 80496f3:	89 d3                	mov    %edx,%ebx
+ 80496f5:	cd 80                	int    $0x80
+ 80496f7:	89 45 f8             	mov    %eax,-0x8(%ebp)
+}
+ 80496fa:	90                   	nop
+ 80496fb:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 80496fe:	c9                   	leave  
+ 80496ff:	c3                   	ret    
+
+08049700 <fork>:
+
+//派生子进程,返回子进程pid
+pid_t fork() {
+ 8049700:	55                   	push   %ebp
+ 8049701:	89 e5                	mov    %esp,%ebp
+ 8049703:	83 ec 10             	sub    $0x10,%esp
+ 8049706:	e8 58 ff ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 804970b:	05 f5 28 00 00       	add    $0x28f5,%eax
+  return _syscall0(SYS_FORK);
+ 8049710:	b8 04 00 00 00       	mov    $0x4,%eax
+ 8049715:	cd 80                	int    $0x80
+ 8049717:	89 45 fc             	mov    %eax,-0x4(%ebp)
+ 804971a:	8b 45 fc             	mov    -0x4(%ebp),%eax
+}
+ 804971d:	c9                   	leave  
+ 804971e:	c3                   	ret    
+
+0804971f <read>:
+
+//从文件描述符 fd 中读取 count 个字节到 buf
+int32_t read(int32_t fd, void* buf, uint32_t count) {
+ 804971f:	55                   	push   %ebp
+ 8049720:	89 e5                	mov    %esp,%ebp
+ 8049722:	53                   	push   %ebx
+ 8049723:	83 ec 10             	sub    $0x10,%esp
+ 8049726:	e8 38 ff ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 804972b:	05 d5 28 00 00       	add    $0x28d5,%eax
+  return _syscall3(SYS_READ, fd, buf, count);
+ 8049730:	b8 05 00 00 00       	mov    $0x5,%eax
+ 8049735:	8b 5d 08             	mov    0x8(%ebp),%ebx
+ 8049738:	8b 4d 0c             	mov    0xc(%ebp),%ecx
+ 804973b:	8b 55 10             	mov    0x10(%ebp),%edx
+ 804973e:	cd 80                	int    $0x80
+ 8049740:	89 45 f8             	mov    %eax,-0x8(%ebp)
+ 8049743:	8b 45 f8             	mov    -0x8(%ebp),%eax
+}
+ 8049746:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 8049749:	c9                   	leave  
+ 804974a:	c3                   	ret    
+
+0804974b <putchar>:
+
+//输出一个字符
+void putchar(char char_asci) {
+ 804974b:	55                   	push   %ebp
+ 804974c:	89 e5                	mov    %esp,%ebp
+ 804974e:	53                   	push   %ebx
+ 804974f:	83 ec 14             	sub    $0x14,%esp
+ 8049752:	e8 0c ff ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 8049757:	05 a9 28 00 00       	add    $0x28a9,%eax
+ 804975c:	8b 45 08             	mov    0x8(%ebp),%eax
+ 804975f:	88 45 e8             	mov    %al,-0x18(%ebp)
+  _syscall1(SYS_PUTCHAR, char_asci);
+ 8049762:	b8 06 00 00 00       	mov    $0x6,%eax
+ 8049767:	0f b6 55 e8          	movzbl -0x18(%ebp),%edx
+ 804976b:	89 d3                	mov    %edx,%ebx
+ 804976d:	cd 80                	int    $0x80
+ 804976f:	89 45 f8             	mov    %eax,-0x8(%ebp)
+}
+ 8049772:	90                   	nop
+ 8049773:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 8049776:	c9                   	leave  
+ 8049777:	c3                   	ret    
+
+08049778 <clear>:
+
+//清空屏幕
+void clear() {
+ 8049778:	55                   	push   %ebp
+ 8049779:	89 e5                	mov    %esp,%ebp
+ 804977b:	83 ec 10             	sub    $0x10,%esp
+ 804977e:	e8 e0 fe ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 8049783:	05 7d 28 00 00       	add    $0x287d,%eax
+  _syscall0(SYS_CLEAR);
+ 8049788:	b8 07 00 00 00       	mov    $0x7,%eax
+ 804978d:	cd 80                	int    $0x80
+ 804978f:	89 45 fc             	mov    %eax,-0x4(%ebp)
+}
+ 8049792:	90                   	nop
+ 8049793:	c9                   	leave  
+ 8049794:	c3                   	ret    
+
+08049795 <getcwd>:
+
+//获取当前工作目录
+char* getcwd(char* buf, uint32_t size) {
+ 8049795:	55                   	push   %ebp
+ 8049796:	89 e5                	mov    %esp,%ebp
+ 8049798:	53                   	push   %ebx
+ 8049799:	83 ec 10             	sub    $0x10,%esp
+ 804979c:	e8 c2 fe ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 80497a1:	05 5f 28 00 00       	add    $0x285f,%eax
+  return (char*)_syscall2(SYS_GETCWD, buf, size);
+ 80497a6:	b8 08 00 00 00       	mov    $0x8,%eax
+ 80497ab:	8b 55 08             	mov    0x8(%ebp),%edx
+ 80497ae:	8b 4d 0c             	mov    0xc(%ebp),%ecx
+ 80497b1:	89 d3                	mov    %edx,%ebx
+ 80497b3:	cd 80                	int    $0x80
+ 80497b5:	89 45 f8             	mov    %eax,-0x8(%ebp)
+ 80497b8:	8b 45 f8             	mov    -0x8(%ebp),%eax
+}
+ 80497bb:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 80497be:	c9                   	leave  
+ 80497bf:	c3                   	ret    
+
+080497c0 <open>:
+
+//以 flag 方式打开文件 pathname
+int32_t open(char* pathname, uint8_t flag) {
+ 80497c0:	55                   	push   %ebp
+ 80497c1:	89 e5                	mov    %esp,%ebp
+ 80497c3:	53                   	push   %ebx
+ 80497c4:	83 ec 14             	sub    $0x14,%esp
+ 80497c7:	e8 97 fe ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 80497cc:	05 34 28 00 00       	add    $0x2834,%eax
+ 80497d1:	8b 45 0c             	mov    0xc(%ebp),%eax
+ 80497d4:	88 45 e8             	mov    %al,-0x18(%ebp)
+  return _syscall2(SYS_OPEN, pathname, flag);
+ 80497d7:	b8 09 00 00 00       	mov    $0x9,%eax
+ 80497dc:	8b 55 08             	mov    0x8(%ebp),%edx
+ 80497df:	0f b6 4d e8          	movzbl -0x18(%ebp),%ecx
+ 80497e3:	89 d3                	mov    %edx,%ebx
+ 80497e5:	cd 80                	int    $0x80
+ 80497e7:	89 45 f8             	mov    %eax,-0x8(%ebp)
+ 80497ea:	8b 45 f8             	mov    -0x8(%ebp),%eax
+}
+ 80497ed:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 80497f0:	c9                   	leave  
+ 80497f1:	c3                   	ret    
+
+080497f2 <close>:
+
+//关闭文件 fd
+int32_t close(int32_t fd) {
+ 80497f2:	55                   	push   %ebp
+ 80497f3:	89 e5                	mov    %esp,%ebp
+ 80497f5:	53                   	push   %ebx
+ 80497f6:	83 ec 10             	sub    $0x10,%esp
+ 80497f9:	e8 65 fe ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 80497fe:	05 02 28 00 00       	add    $0x2802,%eax
+  return _syscall1(SYS_CLOSE, fd);
+ 8049803:	b8 0a 00 00 00       	mov    $0xa,%eax
+ 8049808:	8b 55 08             	mov    0x8(%ebp),%edx
+ 804980b:	89 d3                	mov    %edx,%ebx
+ 804980d:	cd 80                	int    $0x80
+ 804980f:	89 45 f8             	mov    %eax,-0x8(%ebp)
+ 8049812:	8b 45 f8             	mov    -0x8(%ebp),%eax
+}
+ 8049815:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 8049818:	c9                   	leave  
+ 8049819:	c3                   	ret    
+
+0804981a <lseek>:
+
+//设置文件偏移量
+int32_t lseek(int32_t fd, int32_t offset, uint8_t whence) {
+ 804981a:	55                   	push   %ebp
+ 804981b:	89 e5                	mov    %esp,%ebp
+ 804981d:	53                   	push   %ebx
+ 804981e:	83 ec 14             	sub    $0x14,%esp
+ 8049821:	e8 3d fe ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 8049826:	05 da 27 00 00       	add    $0x27da,%eax
+ 804982b:	8b 45 10             	mov    0x10(%ebp),%eax
+ 804982e:	88 45 e8             	mov    %al,-0x18(%ebp)
+  return _syscall3(SYS_LSEEK, fd, offset, whence);
+ 8049831:	b8 0b 00 00 00       	mov    $0xb,%eax
+ 8049836:	8b 5d 08             	mov    0x8(%ebp),%ebx
+ 8049839:	8b 4d 0c             	mov    0xc(%ebp),%ecx
+ 804983c:	0f b6 55 e8          	movzbl -0x18(%ebp),%edx
+ 8049840:	cd 80                	int    $0x80
+ 8049842:	89 45 f8             	mov    %eax,-0x8(%ebp)
+ 8049845:	8b 45 f8             	mov    -0x8(%ebp),%eax
+}
+ 8049848:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 804984b:	c9                   	leave  
+ 804984c:	c3                   	ret    
+
+0804984d <unlink>:
+
+//删除文件 pathname
+int32_t unlink(const char* pathname) {
+ 804984d:	55                   	push   %ebp
+ 804984e:	89 e5                	mov    %esp,%ebp
+ 8049850:	53                   	push   %ebx
+ 8049851:	83 ec 10             	sub    $0x10,%esp
+ 8049854:	e8 0a fe ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 8049859:	05 a7 27 00 00       	add    $0x27a7,%eax
+  return _syscall1(SYS_UNLINK, pathname);
+ 804985e:	b8 0c 00 00 00       	mov    $0xc,%eax
+ 8049863:	8b 55 08             	mov    0x8(%ebp),%edx
+ 8049866:	89 d3                	mov    %edx,%ebx
+ 8049868:	cd 80                	int    $0x80
+ 804986a:	89 45 f8             	mov    %eax,-0x8(%ebp)
+ 804986d:	8b 45 f8             	mov    -0x8(%ebp),%eax
+}
+ 8049870:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 8049873:	c9                   	leave  
+ 8049874:	c3                   	ret    
+
+08049875 <mkdir>:
+
+//创建目录 pathname
+int32_t mkdir(const char* pathname) {
+ 8049875:	55                   	push   %ebp
+ 8049876:	89 e5                	mov    %esp,%ebp
+ 8049878:	53                   	push   %ebx
+ 8049879:	83 ec 10             	sub    $0x10,%esp
+ 804987c:	e8 e2 fd ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 8049881:	05 7f 27 00 00       	add    $0x277f,%eax
+  return _syscall1(SYS_MKDIR, pathname);
+ 8049886:	b8 0d 00 00 00       	mov    $0xd,%eax
+ 804988b:	8b 55 08             	mov    0x8(%ebp),%edx
+ 804988e:	89 d3                	mov    %edx,%ebx
+ 8049890:	cd 80                	int    $0x80
+ 8049892:	89 45 f8             	mov    %eax,-0x8(%ebp)
+ 8049895:	8b 45 f8             	mov    -0x8(%ebp),%eax
+}
+ 8049898:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 804989b:	c9                   	leave  
+ 804989c:	c3                   	ret    
+
+0804989d <opendir>:
+
+//打开目录 name
+struct dir* opendir(const char* name) {
+ 804989d:	55                   	push   %ebp
+ 804989e:	89 e5                	mov    %esp,%ebp
+ 80498a0:	53                   	push   %ebx
+ 80498a1:	83 ec 10             	sub    $0x10,%esp
+ 80498a4:	e8 ba fd ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 80498a9:	05 57 27 00 00       	add    $0x2757,%eax
+  return (struct dir*)_syscall1(SYS_OPENDIR, name);
+ 80498ae:	b8 0e 00 00 00       	mov    $0xe,%eax
+ 80498b3:	8b 55 08             	mov    0x8(%ebp),%edx
+ 80498b6:	89 d3                	mov    %edx,%ebx
+ 80498b8:	cd 80                	int    $0x80
+ 80498ba:	89 45 f8             	mov    %eax,-0x8(%ebp)
+ 80498bd:	8b 45 f8             	mov    -0x8(%ebp),%eax
+}
+ 80498c0:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 80498c3:	c9                   	leave  
+ 80498c4:	c3                   	ret    
+
+080498c5 <closedir>:
+
+//关闭目录 dir
+int32_t closedir(struct dir* dir) {
+ 80498c5:	55                   	push   %ebp
+ 80498c6:	89 e5                	mov    %esp,%ebp
+ 80498c8:	53                   	push   %ebx
+ 80498c9:	83 ec 10             	sub    $0x10,%esp
+ 80498cc:	e8 92 fd ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 80498d1:	05 2f 27 00 00       	add    $0x272f,%eax
+  return _syscall1(SYS_CLOSEDIR, dir);
+ 80498d6:	b8 0f 00 00 00       	mov    $0xf,%eax
+ 80498db:	8b 55 08             	mov    0x8(%ebp),%edx
+ 80498de:	89 d3                	mov    %edx,%ebx
+ 80498e0:	cd 80                	int    $0x80
+ 80498e2:	89 45 f8             	mov    %eax,-0x8(%ebp)
+ 80498e5:	8b 45 f8             	mov    -0x8(%ebp),%eax
+}
+ 80498e8:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 80498eb:	c9                   	leave  
+ 80498ec:	c3                   	ret    
+
+080498ed <rmdir>:
+
+//删除目录 pathname
+int32_t rmdir(const char* pathname) {
+ 80498ed:	55                   	push   %ebp
+ 80498ee:	89 e5                	mov    %esp,%ebp
+ 80498f0:	53                   	push   %ebx
+ 80498f1:	83 ec 10             	sub    $0x10,%esp
+ 80498f4:	e8 6a fd ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 80498f9:	05 07 27 00 00       	add    $0x2707,%eax
+  return _syscall1(SYS_RMDIR, pathname);
+ 80498fe:	b8 11 00 00 00       	mov    $0x11,%eax
+ 8049903:	8b 55 08             	mov    0x8(%ebp),%edx
+ 8049906:	89 d3                	mov    %edx,%ebx
+ 8049908:	cd 80                	int    $0x80
+ 804990a:	89 45 f8             	mov    %eax,-0x8(%ebp)
+ 804990d:	8b 45 f8             	mov    -0x8(%ebp),%eax
+}
+ 8049910:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 8049913:	c9                   	leave  
+ 8049914:	c3                   	ret    
+
+08049915 <readdir>:
+
+//读取目录 dir
+struct dir_entry* readdir(struct dir* dir) {
+ 8049915:	55                   	push   %ebp
+ 8049916:	89 e5                	mov    %esp,%ebp
+ 8049918:	53                   	push   %ebx
+ 8049919:	83 ec 10             	sub    $0x10,%esp
+ 804991c:	e8 42 fd ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 8049921:	05 df 26 00 00       	add    $0x26df,%eax
+  return (struct dir_entry*)_syscall1(SYS_READDIR, dir);
+ 8049926:	b8 12 00 00 00       	mov    $0x12,%eax
+ 804992b:	8b 55 08             	mov    0x8(%ebp),%edx
+ 804992e:	89 d3                	mov    %edx,%ebx
+ 8049930:	cd 80                	int    $0x80
+ 8049932:	89 45 f8             	mov    %eax,-0x8(%ebp)
+ 8049935:	8b 45 f8             	mov    -0x8(%ebp),%eax
+}
+ 8049938:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 804993b:	c9                   	leave  
+ 804993c:	c3                   	ret    
+
+0804993d <rewinddir>:
+
+//回归目录指针
+void rewinddir(struct dir* dir) {
+ 804993d:	55                   	push   %ebp
+ 804993e:	89 e5                	mov    %esp,%ebp
+ 8049940:	53                   	push   %ebx
+ 8049941:	83 ec 10             	sub    $0x10,%esp
+ 8049944:	e8 1a fd ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 8049949:	05 b7 26 00 00       	add    $0x26b7,%eax
+  _syscall1(SYS_REWINDDIR, dir);
+ 804994e:	b8 13 00 00 00       	mov    $0x13,%eax
+ 8049953:	8b 55 08             	mov    0x8(%ebp),%edx
+ 8049956:	89 d3                	mov    %edx,%ebx
+ 8049958:	cd 80                	int    $0x80
+ 804995a:	89 45 f8             	mov    %eax,-0x8(%ebp)
+}
+ 804995d:	90                   	nop
+ 804995e:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 8049961:	c9                   	leave  
+ 8049962:	c3                   	ret    
+
+08049963 <stat>:
+
+//获取 path 属性到 buf 中
+int32_t stat(const char* path, struct stat* buf) {
+ 8049963:	55                   	push   %ebp
+ 8049964:	89 e5                	mov    %esp,%ebp
+ 8049966:	53                   	push   %ebx
+ 8049967:	83 ec 10             	sub    $0x10,%esp
+ 804996a:	e8 f4 fc ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 804996f:	05 91 26 00 00       	add    $0x2691,%eax
+  return _syscall2(SYS_STAT, path, buf);
+ 8049974:	b8 14 00 00 00       	mov    $0x14,%eax
+ 8049979:	8b 55 08             	mov    0x8(%ebp),%edx
+ 804997c:	8b 4d 0c             	mov    0xc(%ebp),%ecx
+ 804997f:	89 d3                	mov    %edx,%ebx
+ 8049981:	cd 80                	int    $0x80
+ 8049983:	89 45 f8             	mov    %eax,-0x8(%ebp)
+ 8049986:	8b 45 f8             	mov    -0x8(%ebp),%eax
+}
+ 8049989:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 804998c:	c9                   	leave  
+ 804998d:	c3                   	ret    
+
+0804998e <chdir>:
+
+//改变工作目录为 path
+int32_t chdir(const char* path) {
+ 804998e:	55                   	push   %ebp
+ 804998f:	89 e5                	mov    %esp,%ebp
+ 8049991:	53                   	push   %ebx
+ 8049992:	83 ec 10             	sub    $0x10,%esp
+ 8049995:	e8 c9 fc ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 804999a:	05 66 26 00 00       	add    $0x2666,%eax
+  return _syscall1(SYS_CHDIR, path);
+ 804999f:	b8 10 00 00 00       	mov    $0x10,%eax
+ 80499a4:	8b 55 08             	mov    0x8(%ebp),%edx
+ 80499a7:	89 d3                	mov    %edx,%ebx
+ 80499a9:	cd 80                	int    $0x80
+ 80499ab:	89 45 f8             	mov    %eax,-0x8(%ebp)
+ 80499ae:	8b 45 f8             	mov    -0x8(%ebp),%eax
+}
+ 80499b1:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 80499b4:	c9                   	leave  
+ 80499b5:	c3                   	ret    
+
+080499b6 <ps>:
+
+//显示任务列表
+void ps() {
+ 80499b6:	55                   	push   %ebp
+ 80499b7:	89 e5                	mov    %esp,%ebp
+ 80499b9:	83 ec 10             	sub    $0x10,%esp
+ 80499bc:	e8 a2 fc ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 80499c1:	05 3f 26 00 00       	add    $0x263f,%eax
+  _syscall0(SYS_PS);
+ 80499c6:	b8 15 00 00 00       	mov    $0x15,%eax
+ 80499cb:	cd 80                	int    $0x80
+ 80499cd:	89 45 fc             	mov    %eax,-0x4(%ebp)
+}
+ 80499d0:	90                   	nop
+ 80499d1:	c9                   	leave  
+ 80499d2:	c3                   	ret    
+
+080499d3 <execv>:
+
+int execv(const char* pathname, char** argv) {
+ 80499d3:	55                   	push   %ebp
+ 80499d4:	89 e5                	mov    %esp,%ebp
+ 80499d6:	53                   	push   %ebx
+ 80499d7:	83 ec 10             	sub    $0x10,%esp
+ 80499da:	e8 84 fc ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 80499df:	05 21 26 00 00       	add    $0x2621,%eax
+   return _syscall2(SYS_EXECV, pathname, argv);
+ 80499e4:	b8 16 00 00 00       	mov    $0x16,%eax
+ 80499e9:	8b 55 08             	mov    0x8(%ebp),%edx
+ 80499ec:	8b 4d 0c             	mov    0xc(%ebp),%ecx
+ 80499ef:	89 d3                	mov    %edx,%ebx
+ 80499f1:	cd 80                	int    $0x80
+ 80499f3:	89 45 f8             	mov    %eax,-0x8(%ebp)
+ 80499f6:	8b 45 f8             	mov    -0x8(%ebp),%eax
+ 80499f9:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 80499fc:	c9                   	leave  
+ 80499fd:	c3                   	ret    
+
+080499fe <itoa>:
+#define va_arg(ap, t) *((t*)(ap += 4))
+//清除 ap
+#define va_end(ap) ap = NULL
+
+//将整型转换成字符
+static void itoa(uint32_t value, char** buf_ptr_addr, uint8_t base) {
+ 80499fe:	55                   	push   %ebp
+ 80499ff:	89 e5                	mov    %esp,%ebp
+ 8049a01:	53                   	push   %ebx
+ 8049a02:	83 ec 24             	sub    $0x24,%esp
+ 8049a05:	e8 59 fc ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 8049a0a:	05 f6 25 00 00       	add    $0x25f6,%eax
+ 8049a0f:	8b 45 10             	mov    0x10(%ebp),%eax
+ 8049a12:	88 45 e4             	mov    %al,-0x1c(%ebp)
+  // 求模，最先掉下来的是最低位
+  uint32_t m = value % base;
+ 8049a15:	0f b6 4d e4          	movzbl -0x1c(%ebp),%ecx
+ 8049a19:	8b 45 08             	mov    0x8(%ebp),%eax
+ 8049a1c:	ba 00 00 00 00       	mov    $0x0,%edx
+ 8049a21:	f7 f1                	div    %ecx
+ 8049a23:	89 55 f4             	mov    %edx,-0xc(%ebp)
+  //取整
+  uint32_t i = value / base;
+ 8049a26:	0f b6 5d e4          	movzbl -0x1c(%ebp),%ebx
+ 8049a2a:	8b 45 08             	mov    0x8(%ebp),%eax
+ 8049a2d:	ba 00 00 00 00       	mov    $0x0,%edx
+ 8049a32:	f7 f3                	div    %ebx
+ 8049a34:	89 45 f0             	mov    %eax,-0x10(%ebp)
+  // 如果倍数不为 0，则递归调用
+  if (i) {
+ 8049a37:	83 7d f0 00          	cmpl   $0x0,-0x10(%ebp)
+ 8049a3b:	74 16                	je     8049a53 <itoa+0x55>
+    itoa(i, buf_ptr_addr, base);
+ 8049a3d:	0f b6 45 e4          	movzbl -0x1c(%ebp),%eax
+ 8049a41:	83 ec 04             	sub    $0x4,%esp
+ 8049a44:	50                   	push   %eax
+ 8049a45:	ff 75 0c             	push   0xc(%ebp)
+ 8049a48:	ff 75 f0             	push   -0x10(%ebp)
+ 8049a4b:	e8 ae ff ff ff       	call   80499fe <itoa>
+ 8049a50:	83 c4 10             	add    $0x10,%esp
+  }
+  // 如果余数是 0～9
+  if (m < 10) {
+ 8049a53:	83 7d f4 09          	cmpl   $0x9,-0xc(%ebp)
+ 8049a57:	77 19                	ja     8049a72 <itoa+0x74>
+    //将数字 0～9 转换为字符'0'～'9'
+    //*buf_ptr_addr得到临时变量中的值，是个指针
+    //进行++操作，然后再*可以得到该指针指向的值
+    *((*buf_ptr_addr)++) = m + '0';
+ 8049a59:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 8049a5c:	8d 58 30             	lea    0x30(%eax),%ebx
+ 8049a5f:	8b 45 0c             	mov    0xc(%ebp),%eax
+ 8049a62:	8b 00                	mov    (%eax),%eax
+ 8049a64:	8d 48 01             	lea    0x1(%eax),%ecx
+ 8049a67:	8b 55 0c             	mov    0xc(%ebp),%edx
+ 8049a6a:	89 0a                	mov    %ecx,(%edx)
+ 8049a6c:	89 da                	mov    %ebx,%edx
+ 8049a6e:	88 10                	mov    %dl,(%eax)
+  } else {
+    //将数字 A～F 转换为字符'A'～'F'
+    *((*buf_ptr_addr)++) = m - 10 + 'A';
+  }
+}
+ 8049a70:	eb 17                	jmp    8049a89 <itoa+0x8b>
+    *((*buf_ptr_addr)++) = m - 10 + 'A';
+ 8049a72:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 8049a75:	8d 58 37             	lea    0x37(%eax),%ebx
+ 8049a78:	8b 45 0c             	mov    0xc(%ebp),%eax
+ 8049a7b:	8b 00                	mov    (%eax),%eax
+ 8049a7d:	8d 48 01             	lea    0x1(%eax),%ecx
+ 8049a80:	8b 55 0c             	mov    0xc(%ebp),%edx
+ 8049a83:	89 0a                	mov    %ecx,(%edx)
+ 8049a85:	89 da                	mov    %ebx,%edx
+ 8049a87:	88 10                	mov    %dl,(%eax)
+}
+ 8049a89:	90                   	nop
+ 8049a8a:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 8049a8d:	c9                   	leave  
+ 8049a8e:	c3                   	ret    
+
+08049a8f <vsprintf>:
+
+
+//将参数ap 按照格式 format 输出到字符串 str，并返回替换后 str 长度
+uint32_t vsprintf(char* str, const char* format, va_list ap) {
+ 8049a8f:	55                   	push   %ebp
+ 8049a90:	89 e5                	mov    %esp,%ebp
+ 8049a92:	53                   	push   %ebx
+ 8049a93:	83 ec 24             	sub    $0x24,%esp
+ 8049a96:	e8 1a f7 ff ff       	call   80491b5 <__x86.get_pc_thunk.bx>
+ 8049a9b:	81 c3 65 25 00 00    	add    $0x2565,%ebx
+  char* buf_ptr = str;
+ 8049aa1:	8b 45 08             	mov    0x8(%ebp),%eax
+ 8049aa4:	89 45 e4             	mov    %eax,-0x1c(%ebp)
+  const char* index_ptr = format;
+ 8049aa7:	8b 45 0c             	mov    0xc(%ebp),%eax
+ 8049aaa:	89 45 f4             	mov    %eax,-0xc(%ebp)
+  char index_char = *index_ptr;
+ 8049aad:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 8049ab0:	0f b6 00             	movzbl (%eax),%eax
+ 8049ab3:	88 45 f3             	mov    %al,-0xd(%ebp)
+  //用来处理整数
+  int32_t arg_int;
+  //用来处理字符串
+  char* arg_str;
+  while (index_char) {
+ 8049ab6:	e9 45 01 00 00       	jmp    8049c00 <vsprintf+0x171>
+    if (index_char != '%') {
+ 8049abb:	80 7d f3 25          	cmpb   $0x25,-0xd(%ebp)
+ 8049abf:	74 21                	je     8049ae2 <vsprintf+0x53>
+      *(buf_ptr++) = index_char;
+ 8049ac1:	8b 45 e4             	mov    -0x1c(%ebp),%eax
+ 8049ac4:	8d 50 01             	lea    0x1(%eax),%edx
+ 8049ac7:	89 55 e4             	mov    %edx,-0x1c(%ebp)
+ 8049aca:	0f b6 55 f3          	movzbl -0xd(%ebp),%edx
+ 8049ace:	88 10                	mov    %dl,(%eax)
+      index_char = *(++index_ptr);
+ 8049ad0:	83 45 f4 01          	addl   $0x1,-0xc(%ebp)
+ 8049ad4:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 8049ad7:	0f b6 00             	movzbl (%eax),%eax
+ 8049ada:	88 45 f3             	mov    %al,-0xd(%ebp)
+      continue;
+ 8049add:	e9 1e 01 00 00       	jmp    8049c00 <vsprintf+0x171>
+    }
+    //得到%后面的字符
+    index_char = *(++index_ptr);
+ 8049ae2:	83 45 f4 01          	addl   $0x1,-0xc(%ebp)
+ 8049ae6:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 8049ae9:	0f b6 00             	movzbl (%eax),%eax
+ 8049aec:	88 45 f3             	mov    %al,-0xd(%ebp)
+    switch (index_char) {
+ 8049aef:	0f be 45 f3          	movsbl -0xd(%ebp),%eax
+ 8049af3:	83 f8 78             	cmp    $0x78,%eax
+ 8049af6:	0f 84 d5 00 00 00    	je     8049bd1 <vsprintf+0x142>
+ 8049afc:	83 f8 78             	cmp    $0x78,%eax
+ 8049aff:	0f 8f fb 00 00 00    	jg     8049c00 <vsprintf+0x171>
+ 8049b05:	83 f8 73             	cmp    $0x73,%eax
+ 8049b08:	74 18                	je     8049b22 <vsprintf+0x93>
+ 8049b0a:	83 f8 73             	cmp    $0x73,%eax
+ 8049b0d:	0f 8f ed 00 00 00    	jg     8049c00 <vsprintf+0x171>
+ 8049b13:	83 f8 63             	cmp    $0x63,%eax
+ 8049b16:	74 50                	je     8049b68 <vsprintf+0xd9>
+ 8049b18:	83 f8 64             	cmp    $0x64,%eax
+ 8049b1b:	74 6f                	je     8049b8c <vsprintf+0xfd>
+ 8049b1d:	e9 de 00 00 00       	jmp    8049c00 <vsprintf+0x171>
+    case 's'://%s
+      arg_str = va_arg(ap, char*);
+ 8049b22:	83 45 10 04          	addl   $0x4,0x10(%ebp)
+ 8049b26:	8b 45 10             	mov    0x10(%ebp),%eax
+ 8049b29:	8b 00                	mov    (%eax),%eax
+ 8049b2b:	89 45 e8             	mov    %eax,-0x18(%ebp)
+      strcpy(buf_ptr, arg_str);
+ 8049b2e:	8b 45 e4             	mov    -0x1c(%ebp),%eax
+ 8049b31:	83 ec 08             	sub    $0x8,%esp
+ 8049b34:	ff 75 e8             	push   -0x18(%ebp)
+ 8049b37:	50                   	push   %eax
+ 8049b38:	e8 f5 f7 ff ff       	call   8049332 <strcpy>
+ 8049b3d:	83 c4 10             	add    $0x10,%esp
+      buf_ptr += strlen(arg_str);
+ 8049b40:	83 ec 0c             	sub    $0xc,%esp
+ 8049b43:	ff 75 e8             	push   -0x18(%ebp)
+ 8049b46:	e8 52 f8 ff ff       	call   804939d <strlen>
+ 8049b4b:	83 c4 10             	add    $0x10,%esp
+ 8049b4e:	8b 55 e4             	mov    -0x1c(%ebp),%edx
+ 8049b51:	01 d0                	add    %edx,%eax
+ 8049b53:	89 45 e4             	mov    %eax,-0x1c(%ebp)
+      index_char = *(++index_ptr);
+ 8049b56:	83 45 f4 01          	addl   $0x1,-0xc(%ebp)
+ 8049b5a:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 8049b5d:	0f b6 00             	movzbl (%eax),%eax
+ 8049b60:	88 45 f3             	mov    %al,-0xd(%ebp)
+      break;
+ 8049b63:	e9 98 00 00 00       	jmp    8049c00 <vsprintf+0x171>
+
+    case 'c'://%c
+      *(buf_ptr++) = va_arg(ap, char);
+ 8049b68:	83 45 10 04          	addl   $0x4,0x10(%ebp)
+ 8049b6c:	8b 45 e4             	mov    -0x1c(%ebp),%eax
+ 8049b6f:	8d 50 01             	lea    0x1(%eax),%edx
+ 8049b72:	89 55 e4             	mov    %edx,-0x1c(%ebp)
+ 8049b75:	8b 55 10             	mov    0x10(%ebp),%edx
+ 8049b78:	0f b6 12             	movzbl (%edx),%edx
+ 8049b7b:	88 10                	mov    %dl,(%eax)
+      index_char = *(++index_ptr);
+ 8049b7d:	83 45 f4 01          	addl   $0x1,-0xc(%ebp)
+ 8049b81:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 8049b84:	0f b6 00             	movzbl (%eax),%eax
+ 8049b87:	88 45 f3             	mov    %al,-0xd(%ebp)
+      break;
+ 8049b8a:	eb 74                	jmp    8049c00 <vsprintf+0x171>
+
+    case 'd'://%d
+      arg_int = va_arg(ap, int);
+ 8049b8c:	83 45 10 04          	addl   $0x4,0x10(%ebp)
+ 8049b90:	8b 45 10             	mov    0x10(%ebp),%eax
+ 8049b93:	8b 00                	mov    (%eax),%eax
+ 8049b95:	89 45 ec             	mov    %eax,-0x14(%ebp)
+      //若是负数，将其转为正数后，在正数前面输出个负号'-'
+      if (arg_int < 0) {
+ 8049b98:	83 7d ec 00          	cmpl   $0x0,-0x14(%ebp)
+ 8049b9c:	79 0f                	jns    8049bad <vsprintf+0x11e>
+        arg_int = 0-arg_int;
+ 8049b9e:	f7 5d ec             	negl   -0x14(%ebp)
+        *buf_ptr++ = '-';
+ 8049ba1:	8b 45 e4             	mov    -0x1c(%ebp),%eax
+ 8049ba4:	8d 50 01             	lea    0x1(%eax),%edx
+ 8049ba7:	89 55 e4             	mov    %edx,-0x1c(%ebp)
+ 8049baa:	c6 00 2d             	movb   $0x2d,(%eax)
+      }
+      itoa(arg_int, &buf_ptr, 10);
+ 8049bad:	8b 45 ec             	mov    -0x14(%ebp),%eax
+ 8049bb0:	83 ec 04             	sub    $0x4,%esp
+ 8049bb3:	6a 0a                	push   $0xa
+ 8049bb5:	8d 55 e4             	lea    -0x1c(%ebp),%edx
+ 8049bb8:	52                   	push   %edx
+ 8049bb9:	50                   	push   %eax
+ 8049bba:	e8 3f fe ff ff       	call   80499fe <itoa>
+ 8049bbf:	83 c4 10             	add    $0x10,%esp
+      index_char = *(++index_ptr);
+ 8049bc2:	83 45 f4 01          	addl   $0x1,-0xc(%ebp)
+ 8049bc6:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 8049bc9:	0f b6 00             	movzbl (%eax),%eax
+ 8049bcc:	88 45 f3             	mov    %al,-0xd(%ebp)
+      break;
+ 8049bcf:	eb 2f                	jmp    8049c00 <vsprintf+0x171>
+
+    case 'x':
+      //具体的值arg_int
+      arg_int  = va_arg(ap, int);
+ 8049bd1:	83 45 10 04          	addl   $0x4,0x10(%ebp)
+ 8049bd5:	8b 45 10             	mov    0x10(%ebp),%eax
+ 8049bd8:	8b 00                	mov    (%eax),%eax
+ 8049bda:	89 45 ec             	mov    %eax,-0x14(%ebp)
+      itoa(arg_int, &buf_ptr, 16);
+ 8049bdd:	8b 45 ec             	mov    -0x14(%ebp),%eax
+ 8049be0:	83 ec 04             	sub    $0x4,%esp
+ 8049be3:	6a 10                	push   $0x10
+ 8049be5:	8d 55 e4             	lea    -0x1c(%ebp),%edx
+ 8049be8:	52                   	push   %edx
+ 8049be9:	50                   	push   %eax
+ 8049bea:	e8 0f fe ff ff       	call   80499fe <itoa>
+ 8049bef:	83 c4 10             	add    $0x10,%esp
+      index_char = *(++index_ptr);
+ 8049bf2:	83 45 f4 01          	addl   $0x1,-0xc(%ebp)
+ 8049bf6:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 8049bf9:	0f b6 00             	movzbl (%eax),%eax
+ 8049bfc:	88 45 f3             	mov    %al,-0xd(%ebp)
+      //跳过格式字符并更新 index_char
+      break;
+ 8049bff:	90                   	nop
+  while (index_char) {
+ 8049c00:	80 7d f3 00          	cmpb   $0x0,-0xd(%ebp)
+ 8049c04:	0f 85 b1 fe ff ff    	jne    8049abb <vsprintf+0x2c>
+    }
+  }
+  return strlen(str);
+ 8049c0a:	83 ec 0c             	sub    $0xc,%esp
+ 8049c0d:	ff 75 08             	push   0x8(%ebp)
+ 8049c10:	e8 88 f7 ff ff       	call   804939d <strlen>
+ 8049c15:	83 c4 10             	add    $0x10,%esp
+}
+ 8049c18:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+ 8049c1b:	c9                   	leave  
+ 8049c1c:	c3                   	ret    
+
+08049c1d <sprintf>:
+
+//同 printf 不同的地方就是字符串不是写到终端，而是写到 buf 中
+uint32_t sprintf(char* buf, const char* format, ...) {
+ 8049c1d:	55                   	push   %ebp
+ 8049c1e:	89 e5                	mov    %esp,%ebp
+ 8049c20:	83 ec 18             	sub    $0x18,%esp
+ 8049c23:	e8 3b fa ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 8049c28:	05 d8 23 00 00       	add    $0x23d8,%eax
+  va_list args;
+  uint32_t retval;
+  va_start(args, format);
+ 8049c2d:	8d 45 0c             	lea    0xc(%ebp),%eax
+ 8049c30:	89 45 f4             	mov    %eax,-0xc(%ebp)
+  retval = vsprintf(buf, format, args);
+ 8049c33:	8b 45 0c             	mov    0xc(%ebp),%eax
+ 8049c36:	83 ec 04             	sub    $0x4,%esp
+ 8049c39:	ff 75 f4             	push   -0xc(%ebp)
+ 8049c3c:	50                   	push   %eax
+ 8049c3d:	ff 75 08             	push   0x8(%ebp)
+ 8049c40:	e8 4a fe ff ff       	call   8049a8f <vsprintf>
+ 8049c45:	83 c4 10             	add    $0x10,%esp
+ 8049c48:	89 45 f0             	mov    %eax,-0x10(%ebp)
+  va_end(args);
+ 8049c4b:	c7 45 f4 00 00 00 00 	movl   $0x0,-0xc(%ebp)
+  return retval;
+ 8049c52:	8b 45 f0             	mov    -0x10(%ebp),%eax
+}
+ 8049c55:	c9                   	leave  
+ 8049c56:	c3                   	ret    
+
+08049c57 <printf>:
+
+
+//格式化输出字符串format
+uint32_t printf(const char* format, ...) {
+ 8049c57:	55                   	push   %ebp
+ 8049c58:	89 e5                	mov    %esp,%ebp
+ 8049c5a:	57                   	push   %edi
+ 8049c5b:	53                   	push   %ebx
+ 8049c5c:	81 ec 10 04 00 00    	sub    $0x410,%esp
+ 8049c62:	e8 4e f5 ff ff       	call   80491b5 <__x86.get_pc_thunk.bx>
+ 8049c67:	81 c3 99 23 00 00    	add    $0x2399,%ebx
+  va_list args;
+  //使 args 指向 format
+  va_start(args, format);
+ 8049c6d:	8d 45 08             	lea    0x8(%ebp),%eax
+ 8049c70:	89 45 f4             	mov    %eax,-0xc(%ebp)
+  //用于存储拼接后的字符串
+  char buf[1024] = {0};
+ 8049c73:	c7 85 f4 fb ff ff 00 	movl   $0x0,-0x40c(%ebp)
+ 8049c7a:	00 00 00 
+ 8049c7d:	8d 95 f8 fb ff ff    	lea    -0x408(%ebp),%edx
+ 8049c83:	b8 00 00 00 00       	mov    $0x0,%eax
+ 8049c88:	b9 ff 00 00 00       	mov    $0xff,%ecx
+ 8049c8d:	89 d7                	mov    %edx,%edi
+ 8049c8f:	f3 ab                	rep stos %eax,%es:(%edi)
+  vsprintf(buf, format, args);
+ 8049c91:	8b 45 08             	mov    0x8(%ebp),%eax
+ 8049c94:	83 ec 04             	sub    $0x4,%esp
+ 8049c97:	ff 75 f4             	push   -0xc(%ebp)
+ 8049c9a:	50                   	push   %eax
+ 8049c9b:	8d 85 f4 fb ff ff    	lea    -0x40c(%ebp),%eax
+ 8049ca1:	50                   	push   %eax
+ 8049ca2:	e8 e8 fd ff ff       	call   8049a8f <vsprintf>
+ 8049ca7:	83 c4 10             	add    $0x10,%esp
+  va_end(args);
+ 8049caa:	c7 45 f4 00 00 00 00 	movl   $0x0,-0xc(%ebp)
+  return write(1,buf,strlen(buf));
+ 8049cb1:	83 ec 0c             	sub    $0xc,%esp
+ 8049cb4:	8d 85 f4 fb ff ff    	lea    -0x40c(%ebp),%eax
+ 8049cba:	50                   	push   %eax
+ 8049cbb:	e8 dd f6 ff ff       	call   804939d <strlen>
+ 8049cc0:	83 c4 10             	add    $0x10,%esp
+ 8049cc3:	83 ec 04             	sub    $0x4,%esp
+ 8049cc6:	50                   	push   %eax
+ 8049cc7:	8d 85 f4 fb ff ff    	lea    -0x40c(%ebp),%eax
+ 8049ccd:	50                   	push   %eax
+ 8049cce:	6a 01                	push   $0x1
+ 8049cd0:	e8 b1 f9 ff ff       	call   8049686 <write>
+ 8049cd5:	83 c4 10             	add    $0x10,%esp
+}
+ 8049cd8:	8d 65 f8             	lea    -0x8(%ebp),%esp
+ 8049cdb:	5b                   	pop    %ebx
+ 8049cdc:	5f                   	pop    %edi
+ 8049cdd:	5d                   	pop    %ebp
+ 8049cde:	c3                   	ret    
+
+08049cdf <user_spin>:
+#include "assert.h"
+#include "stdio.h"
+void user_spin(char* filename, int line, const char* func, const char* condition) {
+ 8049cdf:	55                   	push   %ebp
+ 8049ce0:	89 e5                	mov    %esp,%ebp
+ 8049ce2:	53                   	push   %ebx
+ 8049ce3:	83 ec 04             	sub    $0x4,%esp
+ 8049ce6:	e8 78 f9 ff ff       	call   8049663 <__x86.get_pc_thunk.ax>
+ 8049ceb:	05 15 23 00 00       	add    $0x2315,%eax
+   printf("\n\n\n\nfilename %s\nline %d\nfunction %s\ncondition %s\n", filename, line, func, condition);
+ 8049cf0:	83 ec 0c             	sub    $0xc,%esp
+ 8049cf3:	ff 75 14             	push   0x14(%ebp)
+ 8049cf6:	ff 75 10             	push   0x10(%ebp)
+ 8049cf9:	ff 75 0c             	push   0xc(%ebp)
+ 8049cfc:	ff 75 08             	push   0x8(%ebp)
+ 8049cff:	8d 90 48 e1 ff ff    	lea    -0x1eb8(%eax),%edx
+ 8049d05:	52                   	push   %edx
+ 8049d06:	89 c3                	mov    %eax,%ebx
+ 8049d08:	e8 4a ff ff ff       	call   8049c57 <printf>
+ 8049d0d:	83 c4 20             	add    $0x20,%esp
+   while(1);
+ 8049d10:	eb fe                	jmp    8049d10 <user_spin+0x31>
+ 8049d12:	66 90                	xchg   %ax,%ax
+ 8049d14:	66 90                	xchg   %ax,%ax
+ 8049d16:	66 90                	xchg   %ax,%ax
+ 8049d18:	66 90                	xchg   %ax,%ax
+ 8049d1a:	66 90                	xchg   %ax,%ax
+ 8049d1c:	66 90                	xchg   %ax,%ax
+ 8049d1e:	66 90                	xchg   %ax,%ax
+
+08049d20 <_start>:
+section .text
+global _start
+_start:
+  ;下面这两个要和 execv 中 load 之后指定的寄存器一致
+  ;压入 argv
+  push ebx
+ 8049d20:	53                   	push   %ebx
+  ;压入 argc
+  push ecx 
+ 8049d21:	51                   	push   %ecx
+ 8049d22:	e8 d9 f2 ff ff       	call   8049000 <main>
