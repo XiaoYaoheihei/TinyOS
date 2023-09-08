@@ -87,7 +87,7 @@ void thread_create(struct task_struct* pthread, thread_func function, void* func
 
 //初始化 pid 池
 static void pid_pool_init() {
-  pid_pool.pid_start = -1;
+  pid_pool.pid_start = 1;
   pid_pool.pid_bitmap.bits = pid_bitmap_bits;
   pid_pool.pid_bitmap.bimap_bytes_len = 128;
   bitmap_init(&pid_pool.pid_bitmap);

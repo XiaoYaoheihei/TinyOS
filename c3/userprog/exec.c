@@ -63,52 +63,17 @@ enum segment_type {
 //将文件描述符 fd 指向的文件中，偏移为 offset，
 //大小为 filesz 的段加载到虚拟地址为 vaddr 的内存
 static bool segment_load(int32_t fd, uint32_t offset, uint32_t filesz, uint32_t vaddr) {
-  // //虚拟地址 vaddr 所在的页框起始地址
-  // uint32_t vaddr_first_page = vaddr & 0xfffff000;
-  // //加载到内存后，文件在第一个页框中占用的字节大小
-  // uint32_t size_in_first_page = PG_SIZE - (vaddr&0x00000fff);
-  // //表示该段占用的总页框数
-  // uint32_t occupy_pages = 0;
-  //  //若一个页框容不下该段
-  // if (filesz > size_in_first_page) {
-  //   uint32_t left_size = filesz - size_in_first_page;
-  //   //1 是指 vaddr_first_page
-  //   occupy_pages = DIV_ROUND_UP(left_size, PG_SIZE)+1;
-  // } else {
-  //   occupy_pages = 1;
-  // }
-
-  // //为进程分配内存
-  // uint32_t page_idx = 0;
-  // uint32_t vaddr_page = vaddr_first_page;
-  // while (page_idx < occupy_pages) {
-  //   //获取新进程虚拟地址 vaddr_page 的 pde 和 pte
-  //   uint32_t* pde = pde_ptr(vaddr_page);
-  //   uint32_t* pte = pte_ptr(vaddr_page);
-
-  //   //如果 pde 不存在，或者 pte 不存在就分配内存
-  //   //pde 的判断要在 pte 之前，否则 pde 若不存在会导致判断 pte 时缺页异常
-  //   if (!(*pde & 0x00000001) || !(*pte & 0x00000001)) {
-  //     if (get_a_page(PF_USER, vaddr_page) == NULL) {
-  //       return false;
-  //     }
-  //   }
-  //   //如果原进程的页表已经分配了，利用现有的物理页直接覆盖进程体
-  //   vaddr_page += PG_SIZE;
-  //   page_idx++;
-  // }
-
-  // sys_lseek(fd, offset, SEEK_SET);
-  // //将该段读入虚拟地址vaddr处
-  // sys_read(fd, (void*)vaddr, filesz);
-  // return true;
-  uint32_t vaddr_first_page = vaddr & 0xfffff000;     //vaddr地址所在的页框
-  uint32_t size_in_first_page = PG_SIZE - (vaddr & 0x00000fff); //加载到内存后，文件在第一个页框中占用的字节大小
+  //虚拟地址 vaddr 所在的页框起始地址
+  uint32_t vaddr_first_page = vaddr & 0xfffff000;
+  //加载到内存后，文件在第一个页框中占用的字节大小
+  uint32_t size_in_first_page = PG_SIZE - (vaddr&0x00000fff);
+  //表示该段占用的总页框数
   uint32_t occupy_pages = 0;
-  //若一个页框容不下该段
+   //若一个页框容不下该段
   if (filesz > size_in_first_page) {
     uint32_t left_size = filesz - size_in_first_page;
-    occupy_pages = DIV_ROUND_UP(left_size, PG_SIZE) + 1;  //1是指vaddr_first_page
+    //1 是指 vaddr_first_page
+    occupy_pages = DIV_ROUND_UP(left_size, PG_SIZE)+1;
   } else {
     occupy_pages = 1;
   }
@@ -117,24 +82,59 @@ static bool segment_load(int32_t fd, uint32_t offset, uint32_t filesz, uint32_t 
   uint32_t page_idx = 0;
   uint32_t vaddr_page = vaddr_first_page;
   while (page_idx < occupy_pages) {
-    uint32_t *pde = pde_ptr(vaddr_page);
-    uint32_t *pte = pte_ptr(vaddr_page);
-    //如果pde不存在，或者pte不存在就分配内存．pde的判断要在pte之前，否则pde若不存在会导致判断pte时缺页异常
+    //获取新进程虚拟地址 vaddr_page 的 pde 和 pte
+    uint32_t* pde = pde_ptr(vaddr_page);
+    uint32_t* pte = pte_ptr(vaddr_page);
+
+    //如果 pde 不存在，或者 pte 不存在就分配内存
+    //pde 的判断要在 pte 之前，否则 pde 若不存在会导致判断 pte 时缺页异常
     if (!(*pde & 0x00000001) || !(*pte & 0x00000001)) {
       if (get_a_page(PF_USER, vaddr_page) == NULL) {
-        //exec是执行新进程，也就是用新进程的进程体替换当前老进程，但依然用的是老进程的那套页表，
-        //这就涉及到老进程的页表是否满足新进程内存要求了。如果老进程已经分配了页框，我们不需要再重新分配页框，
-        //只需要用新进程的进程体覆盖老进程就行了，只有新进程用到了在老进程中没有的地址时才需要分配新页框给新进程
         return false;
       }
-    } //如果原进程的页表已经分配了，利用现有的物理页
-      //直接覆盖进程体
-      vaddr_page += PG_SIZE;
-      page_idx++;
+    }
+    //如果原进程的页表已经分配了，利用现有的物理页直接覆盖进程体
+    vaddr_page += PG_SIZE;
+    page_idx++;
   }
+
   sys_lseek(fd, offset, SEEK_SET);
-  sys_read(fd, (void *)vaddr, filesz);
+  //将该段读入虚拟地址vaddr处
+  sys_read(fd, (void*)vaddr, filesz);
   return true;
+  // uint32_t vaddr_first_page = vaddr & 0xfffff000;     //vaddr地址所在的页框
+  // uint32_t size_in_first_page = PG_SIZE - (vaddr & 0x00000fff); //加载到内存后，文件在第一个页框中占用的字节大小
+  // uint32_t occupy_pages = 0;
+  // //若一个页框容不下该段
+  // if (filesz > size_in_first_page) {
+  //   uint32_t left_size = filesz - size_in_first_page;
+  //   occupy_pages = DIV_ROUND_UP(left_size, PG_SIZE) + 1;  //1是指vaddr_first_page
+  // } else {
+  //   occupy_pages = 1;
+  // }
+
+  // //为进程分配内存
+  // uint32_t page_idx = 0;
+  // uint32_t vaddr_page = vaddr_first_page;
+  // while (page_idx < occupy_pages) {
+  //   uint32_t *pde = pde_ptr(vaddr_page);
+  //   uint32_t *pte = pte_ptr(vaddr_page);
+  //   //如果pde不存在，或者pte不存在就分配内存．pde的判断要在pte之前，否则pde若不存在会导致判断pte时缺页异常
+  //   if (!(*pde & 0x00000001) || !(*pte & 0x00000001)) {
+  //     if (get_a_page(PF_USER, vaddr_page) == NULL) {
+  //       //exec是执行新进程，也就是用新进程的进程体替换当前老进程，但依然用的是老进程的那套页表，
+  //       //这就涉及到老进程的页表是否满足新进程内存要求了。如果老进程已经分配了页框，我们不需要再重新分配页框，
+  //       //只需要用新进程的进程体覆盖老进程就行了，只有新进程用到了在老进程中没有的地址时才需要分配新页框给新进程
+  //       return false;
+  //     }
+  //   } //如果原进程的页表已经分配了，利用现有的物理页
+  //     //直接覆盖进程体
+  //     vaddr_page += PG_SIZE;
+  //     page_idx++;
+  // }
+  // sys_lseek(fd, offset, SEEK_SET);
+  // sys_read(fd, (void *)vaddr, filesz);
+  // return true;
 }
 
 //从文件系统上加载用户程序 pathname，成功则返回程序的起始地址，否则返回−1

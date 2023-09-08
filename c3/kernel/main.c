@@ -1,6 +1,6 @@
 #include "print.h"
 #include "init.h"
-#include "debug.h"
+#include "assert.h"
 #include "memory.h"
 #include "../thread/thread.h"
 #include "../device/console.h"
@@ -20,13 +20,13 @@ int main(void) {
    put_str("I am kernel\n");
    init_all();
    //os将程序写入hd80中,hd80中包含已经创建好的文件系统
-   // uint32_t file_size = 24356;
+   // uint32_t file_size = 24140;
    // uint32_t sec_cnt = DIV_ROUND_UP(file_size, 512);
    // printf("seccnt:%d ", sec_cnt);
    // struct disk* sda = &channels[0].devices[0];
    // void* prog_buf = sys_malloc(sec_cnt * SECTOR_SIZE);
    // ide_read(sda, 300, prog_buf, sec_cnt);
-   // int32_t fd = sys_open("/cat", O_CREAT|O_RDWR);
+   // int32_t fd = sys_open("/prog_pipe", O_CREAT|O_RDWR);
    // if (fd != -1) {
    //    if (sys_write(fd, prog_buf, file_size) == -1) {
    //       printk("file write error!\n");
@@ -34,13 +34,13 @@ int main(void) {
    //    }
    // }
    // cls_screen();
-   uint32_t fd = sys_open("/file1", O_RDWR);
-   printf("fd:%d\n", fd);
-   sys_write(fd, "hello,world\n", 12);
-   sys_close(fd);
-   printf("%d closed now\n", fd);
+   // uint32_t fd = sys_open("/file1", O_RDWR);
+   // printf("fd:%d\n", fd);
+   // sys_write(fd, "hello,world\n", 12);
+   // sys_close(fd);
+   // printf("%d closed now\n", fd);
    console_put_str("[rabbit@localhost /]$ ");
-   while(1);
+   thread_exit(running_thread(), true);
    return 0;
 }
 
@@ -48,11 +48,17 @@ int main(void) {
 void init(void) {
    uint32_t ret_pid = fork();
    if(ret_pid) {  // 父进程
-      while(1);
+      int status;
+      int child_pid;
+      //init 在此处不停地回收僵尸进程
+      while (1) {
+         child_pid = wait(&status);
+         printf("I`m init, My pid is 1, I recieve a child,It`s pid is %d, status is %d\n", child_pid, status);
+      }
    } else {	  // 子进程
       my_shell();
    }
-   PANIC("init: should not be here");
+   panic("init: should not be here");
 }
 //ld main.o -Ttext 0xc0001500 -e main -o kernel.bin
 //显示使用-e指明可执行文件的程序入口是main

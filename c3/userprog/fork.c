@@ -8,7 +8,7 @@
 #include "string.h"
 #include "file.h"
 #include "stdio_kernel.h"
-
+#include "pipe.h"
 
 extern void intr_exit();
 
@@ -31,10 +31,14 @@ static int32_t copy_pcb_vaddrbitmap_stack0(struct task_struct* child_thread, str
   //申请一个内核页框来存储位图
   uint32_t bitmap_pg_cnt = DIV_ROUND_UP((0xc0000000 - USER_VADDR_START)/PG_SIZE/8, PG_SIZE);
   void* vaddr_btmp = get_kernel_pages(bitmap_pg_cnt);
+  if (vaddr_btmp == NULL) return -1;
   //没明白为什么要复制父进程虚拟地址池的位图！！！！！
   //此时 child_thread->userprog_vaddr.vaddr_bitmap.bits还是指向父进程虚拟地址的位图地址
   //下面将 child_thread->userprog_vaddr.vaddr_bitmap.bits指向自己的位图 vaddr_btmp
   memcpy(vaddr_btmp, child_thread->ueserprog_vaddr.virtual_addr_bitmap.bits, bitmap_pg_cnt*PG_SIZE);
+  //这里没有赋值就会导致新进程的虚拟地址位图和原进程的虚拟地址位图完全一样，如果原进程的虚拟地址位图释放
+  //那么新进程的虚拟地址位图就找不到内核中对应的虚拟地址位图了！！！！！
+  child_thread->ueserprog_vaddr.virtual_addr_bitmap.bits = vaddr_btmp;
   //调试用
   ASSERT(strlen(child_thread->name)<11);
   //pcb.name 的长度是 16，为避免下面 strcat 越界
@@ -126,7 +130,12 @@ static void update_inode_open_cnts(struct task_struct* thread) {
     global_fd = thread->fd_table[local_fd];
     ASSERT(global_fd < MAX_FILE_OPEN);
     if (global_fd != -1) {
-      file_table[global_fd].fd_inode->i_open_cnts++;
+      if (is_pipe(local_fd)) {
+        //判断是否是管道
+        file_table[global_fd].fd_pos++;
+      } else {
+        file_table[global_fd].fd_inode->i_open_cnts++;
+      }
     }
     local_fd++;
   }

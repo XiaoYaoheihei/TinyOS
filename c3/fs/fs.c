@@ -13,6 +13,7 @@
 #include "thread.h"
 #include "ioqueue.h"
 #include "keyboard.h"
+#include "pipe.h"
 
 //默认情况下操作的是哪个分区
 struct partition* cur_part;
@@ -376,7 +377,7 @@ int32_t sys_open(const char* pathname, uint8_t flags) {
 }
 
 //将文件描述符转化为文件表的下标
-static uint32_t fd_local2global(uint32_t local_fd) {
+uint32_t fd_local2global(uint32_t local_fd) {
   struct task_struct* cur = running_thread();
   //fd_table [local_fd]的值便是文件表的下标
   int32_t global_fd = cur->fd_table[local_fd];
@@ -389,8 +390,18 @@ int32_t sys_close(int32_t fd) {
   //返回值默认为-1,即失败
   int32_t ret = -1;
   if (fd > 2) {
-    uint32_t _fd = fd_local2global(fd);
-    ret = file_close(&file_table[_fd]);
+    uint32_t global_fd = fd_local2global(fd);
+    if (is_pipe(fd)) {
+      //如果此管道上的描述符都被关闭，释放管道的环形缓冲区
+      //没有理解这里的--是什么意思
+      if (--file_table[global_fd].fd_pos == 0) {
+        mfree_page(PF_KERNEL, file_table[global_fd].fd_inode, 1);
+        file_table[global_fd].fd_inode = NULL;
+      }
+      ret = 0;
+    } else {
+      ret = file_close(&file_table[global_fd]);
+    }
     //使该文件描述符 位 可用
     running_thread()->fd_table[fd] = -1;
   }
@@ -404,26 +415,35 @@ int32_t sys_write(int32_t fd, const void* buf, uint32_t count) {
     return -1;
   }
   if (fd == stdout_no) {
-    //往屏幕上打印信息
-    char tmp_buf[1024] = {0};
-    memcpy(tmp_buf, buf, count);
-    console_put_str(tmp_buf);
-    return count;
-  }
-  //在其他情况下，sys_write 都是往文件中写数据
-  uint32_t _fd = fd_local2global(fd);
-  struct file* wr_file = &file_table[_fd];
-  //只有 flag包含 O_WRONLY 或 O_RDWR 的文件才允许写入数据
-  if (wr_file->fd_flag & O_WRONLY || wr_file->fd_flag & O_RDWR) {
-    uint32_t bytes_written = file_write(wr_file, buf, count);
-    //可以在这里添加调试信息看是否写入了相当的字节
-    //其实有一个小小的疑问，将外部可执行文件的代码段写入的时候，返回的字节数是完全写入的数量
-    //但是在file_write种打印写入的扇区数不够，扇区数量比应该的要少一点，这不会影响下一步进行
-    return bytes_written;
+    //标准输出有可能被重定向为管道缓冲区，因此要判断
+    if (is_pipe(fd)) {
+      return pipe_write(fd, buf, count);
+    } else {
+      //往屏幕上打印信息
+      char tmp_buf[1024] = {0};
+      memcpy(tmp_buf, buf, count);
+      console_put_str(tmp_buf);
+      return count;
+    }
+  } else if (is_pipe(fd)) {
+    // 若是管道就调用管道的方法
+    return pipe_write(fd, buf, count);
   } else {
-    //否则不允许写入数据，输出提示信息后返回−1
-    console_put_str("sys_write: not allowed to write file without flag O_RDWR or O_WRONLY\n");
-    return -1;
+    //在其他情况下，sys_write 都是往文件中写数据
+    uint32_t _fd = fd_local2global(fd);
+    struct file* wr_file = &file_table[_fd];
+    //只有 flag包含 O_WRONLY 或 O_RDWR 的文件才允许写入数据
+    if (wr_file->fd_flag & O_WRONLY || wr_file->fd_flag & O_RDWR) {
+      uint32_t bytes_written = file_write(wr_file, buf, count);
+      //可以在这里添加调试信息看是否写入了相当的字节
+      //其实有一个小小的疑问，将外部可执行文件的代码段写入的时候，返回的字节数是完全写入的数量
+      //但是在file_write种打印写入的扇区数不够，扇区数量比应该的要少一点，这不会影响下一步进行
+      return bytes_written;
+    } else {
+      //否则不允许写入数据，输出提示信息后返回−1
+      console_put_str("sys_write: not allowed to write file without flag O_RDWR or O_WRONLY\n");
+      return -1;
+    }
   }
 }
 
@@ -435,15 +455,23 @@ int32_t sys_read(int32_t fd, void* buf, uint32_t count) {
   if (fd < 0 || fd == stdout_no || fd == stderr_no) {
     printk("sys_read: fd error\n");
   } else if (fd == stdin_no) {
-    char* bufffer = buf;
-    uint32_t bytes_read = 0;
-    while (bytes_read < count) {
-      //每次从键盘缓冲区kdb_buf中获取1个字符,直到获取完全为止
-      *bufffer = ioq_getchar(&kbd_buf);
-      bytes_read++;
-      bufffer++;
+    if (is_pipe(fd)) {
+      //标准输入有可能被重定向为管道缓冲区，因此要判断
+      ret = pipe_read(fd, buf, count);
+    } else {
+      char* bufffer = buf;
+      uint32_t bytes_read = 0;
+      while (bytes_read < count) {
+        //每次从键盘缓冲区kdb_buf中获取1个字符,直到获取完全为止
+        *bufffer = ioq_getchar(&kbd_buf);
+        bytes_read++;
+        bufffer++;
+      }
+      ret = (bytes_read == 0 ? -1 : (int32_t)bytes_read);
     }
-    ret = (bytes_read == 0 ? -1 : (int32_t)bytes_read);
+  } else if (is_pipe(fd)) {
+    // 若是管道就调用管道的方法
+    ret = pipe_read(fd, buf, count);
   } else {
     uint32_t _fd = fd_local2global(fd);
     ret = file_read(&file_table[_fd], buf, count);
