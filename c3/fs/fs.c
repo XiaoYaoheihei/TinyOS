@@ -466,6 +466,11 @@ int32_t sys_read(int32_t fd, void* buf, uint32_t count) {
         *bufffer = ioq_getchar(&kbd_buf);
         bytes_read++;
         bufffer++;
+        //当键盘缓冲区输入了回车符之后就应该退出读取
+        //要不然会一直循环读取直到读够512字节为止
+        if (*(bufffer - 1) == '\r') {
+          break;
+        }
       }
       ret = (bytes_read == 0 ? -1 : (int32_t)bytes_read);
     }
