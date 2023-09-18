@@ -1,7 +1,7 @@
 ;---loader 和 kernel
 
 LOADER_BASE_ADDR equ 0x900    ;loader（加载器）在内存中的位置
-LOADER_START_SECTOR equ 0x2   ;loader在硬盘上的逻辑扇区地址，第二块扇区
+LOADER_START_SECTOR equ 0x2   ;loader在硬盘上的逻辑扇区地址,也就是LBA地址，第二块扇区
 
 KERNEL_START_SECTOR  equ 0x9         ;kernel.bin 所在的扇区号
 KERNEL_BIN_BASE_ADDR equ 0x70000     ;kernel.bin加载的内存地址

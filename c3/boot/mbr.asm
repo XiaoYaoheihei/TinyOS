@@ -54,7 +54,7 @@ SECTION MBR vstart=0x7c00
                                 ;加载loader.bin的扇区数变为4
   call rd_disk_m_16             ;读取程序的起始部分
 
-  jmp LOADER_BASE_ADDR + 0x300
+  jmp LOADER_BASE_ADDR + 0x300  ;跳转到内核加载器，MBR将控制权交给了内核加载器
 
 ;---------------功能：读取硬盘的n个扇区
 rd_disk_m_16:
@@ -101,7 +101,8 @@ rd_disk_m_16:
 ;第四步，检测硬盘状态
 ;同一个端口地址，写时表示表示写入命令字，读时表示读入硬盘状态
   .not_ready:
-    nop
+    nop           ;nop 表示空操作，即什么也不做，只是为了增加延迟，相
+                  ;当于 sleep 了一小下，目的是减少打扰硬盘的工作
     in al,dx
     and al,0x88   ;第4位为1表示硬盘控制器已经准备好数据传输
                   ;第7位为1表示硬盘忙
@@ -117,8 +118,12 @@ rd_disk_m_16:
     mov dx,0x1f0
 
   .go_on_ready:
+  ;通过循环来将数据写入 bx 寄存器指向的内存，每读入 2 个字节，bx 所指的地址便+2
     in ax,dx
     mov [bx],ax
+    ;在实模式下偏移地址为 16 位，所以用 bx 只会访问到 0～FFFFh 的偏移
+    ;写入的地址超过 bx 的范围时，从硬盘上读出的数据会把 0x0000～0xffff 的覆盖
+    ;所以此处加载的程序不能超过64K
     add bx,2
     loop .go_on_ready
   ret

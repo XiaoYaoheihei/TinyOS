@@ -1,4 +1,7 @@
 %include "boot.inc"
+;loader的主要目的就是为了要加载内核！！！
+;在MBR中将loader从相应的扇区加载到内存0x900处
+;此处编译的地址应该从0x900开始
 section loader vstart=LOADER_BASE_ADDR
 LOADER_STACK_TOP equ LOADER_BASE_ADDR
 ;jmp loader_start
