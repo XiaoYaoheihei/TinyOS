@@ -73,6 +73,7 @@ static void pic_init(void) {
   outb (PIC_S_DATA, 0x28);  //icw2,起始中断向量号为 0x28,也就是 IR[8-15]为 0x28 ～ 0x2F
   outb (PIC_S_DATA, 0x02);  //icw3,设置从片连接到主片的 IR2 引脚
   outb (PIC_S_DATA, 0x01);  //icw4,8086 模式, 正常 EOI
+  
   //打开主片上的IR0,目前只是接收时钟产生的中断，屏蔽掉其他所有的中断
   //此时发送的任何数据都是操作控制字，即是ocw
   
@@ -169,6 +170,10 @@ void idt_init() {
   //加载idt
   //首先得到idt的段界限limit，用作低16位
   uint64_t idt_operand =  ((sizeof(idt) - 1) | ((uint64_t)(uint32_t)idt << 16));
+  //这里的记忆太深刻了，当时idt描述符的基地址获取的有问题，问题不知道出在哪里，只能最后用替换大法了！！！！
+  //先将指针地址转化成32位整数，考虑到万一高16位不是0左移16位会造成数据丢失
+  //所以再将32位整数转化成64位整数，保证数据正确，再进行左移操作
+  
   //通过内存获取48位操作数
   asm volatile("lidt %0" : : "m" (idt_operand));
   put_str("idt_init done\n");

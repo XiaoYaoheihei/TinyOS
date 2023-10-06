@@ -29,8 +29,7 @@ DESC_S_sys  equ 0_000000000000b
 
 DESC_TYPE_CODE  equ 1000_00000000b  ;代码段的type字段
 ;x=1,c=0,r=0,a=0 代码段是可执行的，非一致性，不可读，已访问位 a 清 0
-DESC_TYPE_DATA  equ 0100_00000000b
-;DESC_TYPE_DATA  equ 0010_00000000b
+DESC_TYPE_DATA  equ 0010_00000000b
 ;x=0,e=0,w=1,a=0 数据段是不可执行的，向上扩展的，可写，已访问位 a 清 0
 ;代码段的高4字节内容
 DESC_CODE_HIGH4 equ (0x00 << 24) + DESC_G_4K + DESC_D_32 + \
