@@ -16,7 +16,7 @@ void lock_init(struct lock* plock) {
   sema_init(&plock->semaphorer, 1);
 }
 
-//信号量dowm操作
+//信号量dowm操作，获取锁
 void sema_down(struct semaphore* psema) {
   //关中断
   enum intr_status old_status = intr_disable();
@@ -41,7 +41,7 @@ void sema_down(struct semaphore* psema) {
   intr_set_status(old_status);
 }
 
-//信号量的up操作
+//信号量的up操作，释放锁
 void sema_up(struct semaphore* psema) {
   enum intr_status old_status = intr_disable();
   ASSERT(psema->value == 0);

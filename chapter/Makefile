@@ -54,7 +54,7 @@ build:
       -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/process.o  userprog/process.c -m32
 	gcc -I lib/kernel -I thread -I fs -I lib -c -fno-builtin -W -Wstrict-prototypes \
       -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/syscall.o  lib/user/syscall.c -m32
-	gcc -I lib -I lib/kernel -I kernel -I thread -I fs -I lib -I device -I shell -c -fno-builtin -W -Wstrict-prototypes \
+	gcc -I lib -I lib/kernel -I kernel -I thread -I fs -I lib -I device -I shell -I userprog -c -fno-builtin -W -Wstrict-prototypes \
       -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/syscall_init.o  userprog/syscall_init.c -m32
 	gcc -I lib/kernel -I thread -c -fno-builtin -W -Wstrict-prototypes \
       -Wmissing-prototypes -fno-stack-protector -ggdb -nostdinc -mno-sse -g -o out/kernel/stdio.o  lib/stdio.c -m32

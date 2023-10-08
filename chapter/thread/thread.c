@@ -58,7 +58,8 @@ static void idle(void* arg UNUSED) {
 struct task_struct* running_thread() {
   uint32_t esp;
   asm ("mov %%esp, %0" : "=g"(esp));
-  //取esp整数部分,也就是PCB的起始地址
+  //各个线程所用的0级栈都在自己的PCB当中
+  //所以取当前栈指针的高20位，也就是PCB的起始地址
   //这一部分原理：
   return (struct task_struct*)(esp & 0xfffff000);
 }
